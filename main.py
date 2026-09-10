@@ -9,7 +9,7 @@ import hashlib
 import hmac
 import secrets
 from groq import Groq
-import json
+from pymongo import MongoClient
 from pypdf import PdfReader
 import io
 from docx import Document
@@ -23,62 +23,47 @@ templates = Jinja2Templates(directory="templates")
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-USERS_FILE = "users.json"
+mongo_client = MongoClient(os.getenv("MONGO_URI"))
+db = mongo_client["bengansonai"]
+users_col = db["users"]
+history_col = db["history"]
+reminders_col = db["reminders"]
+
+DEFAULT_SYSTEM_MESSAGE = {"role": "system", "content": "You are Benganson AI, a helpful personal assistant. You are not ChatGPT and you should never refer to yourself as ChatGPT."}
 
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
-def history_file(email):
-    return f"history_{email.replace('@', '_at_').replace('.', '_dot_')}.json"
-
-
-def reminders_file(email):
-    return f"reminders_{email.replace('@', '_at_').replace('.', '_dot_')}.json"
-
-
 def load_history(email):
-    path = history_file(email)
-    if os.path.exists(path):
-        with open(path, "r") as f:
-            return json.load(f)
-    else:
-        return [
-            {"role": "system", "content": "You are Benganson AI, a helpful personal assistant. You are not ChatGPT and you should never refer to yourself as ChatGPT."}
-        ]
+    doc = history_col.find_one({"email": email})
+    if doc:
+        return doc["messages"]
+    return [DEFAULT_SYSTEM_MESSAGE]
 
 
-def save_history(email, history):
-    with open(history_file(email), "w") as f:
-        json.dump(history, f)
+def save_history(email, messages):
+    history_col.update_one({"email": email}, {"$set": {"messages": messages}}, upsert=True)
 
 
 def load_reminders(email):
-    path = reminders_file(email)
-    if os.path.exists(path):
-        with open(path, "r") as f:
-            return json.load(f)
-    else:
-        return []
+    doc = reminders_col.find_one({"email": email})
+    if doc:
+        return doc["items"]
+    return []
 
 
-def save_reminders(email, reminders):
-    with open(reminders_file(email), "w") as f:
-        json.dump(reminders, f)
+def save_reminders(email, items):
+    reminders_col.update_one({"email": email}, {"$set": {"items": items}}, upsert=True)
 
 
-def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r") as f:
-            return json.load(f)
-    else:
-        return {}
+def get_user(email):
+    return users_col.find_one({"email": email})
 
 
-def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f)
+def create_user(email, password_hash):
+    users_col.insert_one({"email": email, "password": password_hash})
 
 
 def hash_password(password, salt=None):
@@ -92,9 +77,6 @@ def verify_password(password, stored):
     salt, hashed = stored.split("$")
     check = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000).hex()
     return hmac.compare_digest(check, hashed)
-
-
-users = load_users()
 
 
 def require_login(request: Request):
@@ -139,7 +121,7 @@ def login_page(error: str = ""):
 @app.post("/login")
 def login_submit(request: Request, email: str = Form(...), password: str = Form(...)):
     email = email.lower().strip()
-    user = users.get(email)
+    user = get_user(email)
 
     if not user or not verify_password(password, user["password"]):
         return RedirectResponse(url="/login?error=Invalid+email+or+password", status_code=303)
@@ -172,14 +154,13 @@ def signup_page(error: str = ""):
 def signup_submit(request: Request, email: str = Form(...), password: str = Form(...)):
     email = email.lower().strip()
 
-    if email in users:
+    if get_user(email):
         return RedirectResponse(url="/signup?error=Email+already+registered", status_code=303)
 
     if len(password) < 6:
         return RedirectResponse(url="/signup?error=Password+too+short", status_code=303)
 
-    users[email] = {"password": hash_password(password)}
-    save_users(users)
+    create_user(email, hash_password(password))
 
     request.session["user"] = email
     return RedirectResponse(url="/", status_code=303)
@@ -246,10 +227,7 @@ def get_history(request: Request, _: bool = Depends(require_login)):
 @app.get("/reset")
 def reset(request: Request, _: bool = Depends(require_login)):
     email = request.session.get("user")
-    conversation_history = [
-        {"role": "system", "content": "You are Benganson AI, a helpful personal assistant. You are not ChatGPT and you should never refer to yourself as ChatGPT."}
-    ]
-    save_history(email, conversation_history)
+    save_history(email, [DEFAULT_SYSTEM_MESSAGE])
     return {"status": "Memory cleared"}
 
 
