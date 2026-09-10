@@ -4,25 +4,27 @@
     <meta charset="UTF-8">
     <title>Benganson AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
 
         :root {
-            --bg: #15121b;
-            --panel: #1c1824;
-            --panel-2: #221d2b;
-            --border: rgba(255,255,255,0.07);
-            --text: #f3f0f6;
-            --muted: #948d9f;
-            --accent-1: #ff9d5c;
-            --accent-2: #ff6b6b;
+            --bg: #0a0a14;
+            --sidebar: #0d0c17;
+            --panel: #11101b;
+            --panel-2: #171625;
+            --border: rgba(255,255,255,0.08);
+            --text: #f5f4fa;
+            --muted: #8b899b;
+            --accent-1: #6366f1;
+            --accent-2: #a855f7;
+            --accent-3: #ec4899;
             --gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --gradient-tri: linear-gradient(135deg, #60a5fa, var(--accent-2), var(--accent-3));
         }
 
         body {
             background-color: var(--bg);
-            background-image: radial-gradient(circle at 15% 0%, rgba(255,157,92,0.08), transparent 40%);
             color: var(--text);
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -32,349 +34,529 @@
         }
 
         #sidebar {
-            width: 270px;
+            width: 280px;
             flex-shrink: 0;
-            background-color: var(--panel);
+            background-color: var(--sidebar);
             border-right: 1px solid var(--border);
-            padding: 20px 16px;
+            padding: 24px 18px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
+            gap: 26px;
         }
-
-        #brand {
+        #brand { display: flex; align-items: center; gap: 12px; }
+        #brand .mark { width: 38px; height: 38px; flex-shrink: 0; }
+        #brand-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0;
+        }
+        #brand-text span {
+            font-size: 11px;
+            color: var(--muted);
+            background: var(--panel-2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 3px;
+        }
+        #nav { display: flex; flex-direction: column; gap: 4px; }
+        .nav-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        #brand .mark {
-            width: 32px;
-            height: 32px;
-        }
-
-        #brand span {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 17px;
-            letter-spacing: 0.2px;
-        }
-
-        #new-chat-btn {
-            width: 100%;
-            padding: 11px 14px;
+            gap: 12px;
+            padding: 10px 12px;
             border-radius: 10px;
-            border: none;
-            background: var(--gradient);
-            color: #1a1218;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .sidebar-section {
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-        }
-
-        .sidebar-section h3 {
-            font-size: 11px;
-            font-weight: 600;
             color: var(--muted);
-            margin: 0 0 10px 0;
-            letter-spacing: 0.3px;
-        }
-
-        .chat-history-item {
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #cbc5d4;
-            cursor: pointer;
-        }
-        .chat-history-item:hover { background-color: var(--panel-2); }
-
-        #sidebar button, #sidebar input[type="text"] {
-            width: 100%;
-            margin-bottom: 7px;
-        }
-
-        button.tool-btn {
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background-color: var(--panel-2);
-            color: var(--text);
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            text-align: left;
         }
-        button.tool-btn:hover { border-color: rgba(255,157,92,0.4); }
-
-        input[type="text"], input[type="file"] {
-            padding: 9px 11px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background-color: var(--panel-2);
-            color: var(--text);
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        #reminders-box .reminder-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .nav-item:hover { background-color: var(--panel-2); color: var(--text); }
+        .nav-item.active { background: rgba(99,102,241,0.16); color: #fff; }
+        #sidebar-spacer { flex: 1; }
+        #pro-card {
             background-color: var(--panel-2);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 12.5px;
-            margin-top: 6px;
-        }
-        #reminders-box .reminder-item span.txt { color: #f0c9a8; }
-        #reminders-box .reminder-item span.del {
-            cursor: pointer;
-            color: var(--accent-2);
-            font-weight: 700;
-        }
-
-        #main {
-            flex: 1;
+            border-radius: 14px;
+            padding: 14px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            min-width: 0;
-        }
-
-        #chat-box {
-            flex: 1;
-            width: 100%;
-            max-width: 720px;
-            overflow-y: auto;
-            padding: 36px 24px 10px 24px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .row {
-            display: flex;
             gap: 10px;
-            margin-top: 18px;
-            align-items: flex-start;
+            cursor: pointer;
         }
-        .row.user { justify-content: flex-end; }
+        #pro-card svg.bolt { width: 20px; height: 20px; flex-shrink: 0; }
+        #pro-card .txt { flex: 1; }
+        #pro-card .txt b { font-size: 13px; display: block; }
+        #pro-card .txt span { font-size: 11px; color: var(--muted); }
 
-        .avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--gradient);
+        #app-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+        #topbar {
+            height: 70px;
             flex-shrink: 0;
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            border-bottom: 1px solid var(--border);
+        }
+        #topsearch {
+            flex: 1;
+            max-width: 620px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 9px 16px;
+        }
+        #topsearch svg { width: 16px; height: 16px; color: var(--muted); flex-shrink: 0; }
+        #topsearch input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 14px; }
+        #topsearch input:focus { outline: none; }
+        #profile-area { display: flex; align-items: center; gap: 16px; position: relative; }
+        #theme-btn {
+            width: 34px; height: 34px; border-radius: 50%;
+            background-color: var(--panel-2); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer;
+        }
+        #profile-chip { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        #avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--gradient); color: #fff; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+            flex-shrink: 0;
+        }
+        #profile-text { line-height: 1.3; }
+        #profile-text .name { font-size: 13px; font-weight: 600; }
+        #profile-text .email { font-size: 11px; color: var(--muted); }
+        #profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 46px; right: 0;
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            min-width: 130px;
+            z-index: 10;
+        }
+        #profile-dropdown.show { display: block; }
+        #profile-dropdown a {
+            display: block; padding: 8px 10px; border-radius: 7px;
+            color: var(--text); font-size: 13px; text-decoration: none;
+        }
+        #profile-dropdown a:hover { background-color: var(--panel); }
+
+        #hero-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
         }
-        .avatar svg { width: 18px; height: 18px; }
-
-        .bubble {
-            padding: 12px 16px;
-            border-radius: 14px;
-            max-width: 78%;
-            line-height: 1.55;
-            font-size: 15px;
-            animation: rise 0.25s ease;
+        #hero-view .mark-big { width: 84px; height: 84px; margin-bottom: 18px; }
+        #hero-view h2 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; font-weight: 800; margin: 0; }
+        #hero-view h2 .ai-grad {
+            background: var(--gradient-tri);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-
-        @keyframes rise {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .bubble table {
-            border-collapse: collapse;
-            margin-top: 8px;
-            width: 100%;
-            table-layout: fixed;
-        }
-        .bubble th, .bubble td {
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 5px 7px;
-            font-size: 12px;
-            word-wrap: break-word;
-        }
-
-        .user-bubble {
-            background: var(--gradient);
-            color: #1a1218;
-            font-weight: 500;
-            border-bottom-right-radius: 4px;
-        }
-
-        .ai-bubble {
-            background-color: rgba(255,255,255,0.045);
+        #hero-view p.tagline { color: var(--muted); font-size: 16px; margin: 10px 0 30px 0; }
+        #quick-cards { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; z-index: 2; }
+        .qcard {
+            width: 130px;
+            background-color: var(--panel-2);
             border: 1px solid var(--border);
-            backdrop-filter: blur(6px);
-            color: var(--text);
-            border-bottom-left-radius: 4px;
+            border-radius: 16px;
+            padding: 18px 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .qcard:hover { border-color: rgba(168,85,247,0.4); }
+        .qcard svg { width: 22px; height: 22px; margin-bottom: 8px; }
+        .qcard b { display: block; font-size: 13px; margin-bottom: 3px; }
+        .qcard span { font-size: 11px; color: var(--muted); }
+        #glow {
+            position: absolute;
+            bottom: -160px;
+            width: 700px;
+            height: 350px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%);
+            z-index: 1;
         }
 
-        #search-toggle-row {
-            width: 100%;
-            max-width: 720px;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        #chat-view {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 28px 32px 10px 32px;
         }
-        #search-toggle-row input[type="checkbox"] {
-            width: auto;
+        .row { display: flex; gap: 10px; margin-top: 16px; align-items: flex-start; }
+        .row.user { justify-content: flex-end; }
+        .avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--gradient-tri); flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
         }
-        #search-toggle-row label {
-            font-size: 13px;
-            color: var(--muted);
+        .avatar svg { width: 15px; height: 15px; }
+        .bubble { padding: 12px 16px; border-radius: 14px; max-width: 70%; line-height: 1.55; font-size: 15px; }
+        .bubble table { border-collapse: collapse; margin-top: 8px; width: 100%; table-layout: fixed; }
+        .bubble th, .bubble td { border: 1px solid rgba(255,255,255,0.15); padding: 5px 7px; font-size: 12px; word-wrap: break-word; }
+        .user-bubble { background: var(--gradient); color: #fff; border-bottom-right-radius: 4px; }
+        .ai-bubble { background-color: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+        .thinking-dots { display: inline-flex; gap: 4px; align-items: center; }
+        .thinking-dots span {
+            width: 6px; height: 6px; border-radius: 50%;
+            background-color: var(--muted);
+            animation: bounce 1.2s infinite ease-in-out;
         }
-
-        #input-wrapper {
-            width: 100%;
-            max-width: 720px;
-            padding: 8px 24px 26px 24px;
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+            40% { opacity: 1; transform: translateY(-4px); }
+        }
+        #input-dock {
+            flex-shrink: 0;
+            padding: 14px 32px 22px 32px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
-        #input-bar {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        #input-row { width: 100%; max-width: 800px; display: flex; align-items: center; gap: 10px; }
+        #input-pill {
+            flex: 1; display: flex; align-items: center;
             background-color: var(--panel-2);
             border: 1px solid var(--border);
             border-radius: 24px;
-            padding: 6px 6px 6px 10px;
+            padding: 6px 8px 6px 18px;
         }
-
-        #input-bar input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            padding: 10px 0;
-            color: var(--text);
-        }
-        #input-bar input:focus { outline: none; }
-
-        #mic-btn {
-            background: transparent;
-            border: none;
-            color: var(--accent-1);
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
+        #input-pill input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 15px; padding: 10px 0; }
+        #input-pill input:focus { outline: none; }
+        #mic-btn { background: transparent; border: none; color: var(--muted); padding: 8px; cursor: pointer; display: flex; align-items: center; }
         #send-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: none;
-            background: var(--gradient);
-            color: #1a1218;
-            font-weight: 700;
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: var(--gradient); color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        #chip-row { display: flex; gap: 8px; margin-top: 12px; max-width: 800px; width: 100%; }
+        .chip {
+            display: flex; align-items: center; gap: 6px;
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12.5px;
+            padding: 7px 12px;
+            border-radius: 18px;
             cursor: pointer;
+        }
+        .chip svg { width: 14px; height: 14px; }
+        .chip:hover { color: var(--text); }
+        .chip.active { background: rgba(99,102,241,0.18); color: #fff; border-color: rgba(99,102,241,0.4); }
+
+        #right-panel {
+            width: 320px;
+            flex-shrink: 0;
+            background-color: var(--sidebar);
+            border-left: 1px solid var(--border);
+            padding: 24px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #greeting-card {
+            background: var(--gradient);
+            border-radius: 16px;
+            padding: 18px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
+        }
+        #greeting-card .icon-box {
+            width: 40px; height: 40px; border-radius: 10px;
+            background-color: rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-
-        #chat-box::-webkit-scrollbar, #sidebar::-webkit-scrollbar { width: 6px; }
-        #chat-box::-webkit-scrollbar-thumb, #sidebar::-webkit-scrollbar-thumb {
-            background-color: #372f40;
+        #greeting-card .icon-box svg { width: 20px; height: 20px; color: #fff; }
+        #greeting-card p { margin: 0; font-size: 12.5px; color: rgba(255,255,255,0.85); }
+        #greeting-card b { font-size: 16px; display: block; }
+        .side-section h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 0 0 12px 0; font-weight: 600; }
+        .side-section h3 svg { width: 15px; height: 15px; color: var(--accent-1); }
+        .side-section .view-all { margin-left: auto; font-size: 11.5px; color: var(--accent-2); cursor: pointer; font-weight: 500; }
+        .side-btn {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%;
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 13px;
+            padding: 10px 12px;
             border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            text-align: left;
         }
+        .side-btn svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); }
+        .side-btn:hover { border-color: rgba(168,85,247,0.4); }
+        .reminder-row, .convo-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; cursor: pointer; }
+        .reminder-row .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--muted); margin-top: 2px; flex-shrink: 0; }
+        .reminder-row .txt b, .convo-row .txt b { display: block; font-size: 13px; font-weight: 500; }
+        .reminder-row .txt span, .convo-row .txt span { font-size: 11.5px; color: var(--muted); }
+        .convo-row .bubble-icon {
+            width: 26px; height: 26px; border-radius: 50%;
+            background-color: var(--panel-2);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .convo-row .bubble-icon svg { width: 13px; height: 13px; color: var(--muted); }
+
+        #chat-view::-webkit-scrollbar, #right-panel::-webkit-scrollbar { width: 6px; }
+        #chat-view::-webkit-scrollbar-thumb, #right-panel::-webkit-scrollbar-thumb { background-color: #26243a; border-radius: 10px; }
     </style>
 </head>
 <body>
     <div id="sidebar">
         <div id="brand">
-            <svg class="mark" viewBox="0 0 40 40">
+            <svg class="mark" viewBox="0 0 24 24">
                 <defs>
-                    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#ff9d5c"/>
-                        <stop offset="100%" stop-color="#ff6b6b"/>
-                    </linearGradient>
-                    <linearGradient id="g2" x1="1" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#ffb98a"/>
-                        <stop offset="100%" stop-color="#ff6b6b"/>
+                    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#60a5fa"/>
+                        <stop offset="50%" stop-color="#a855f7"/>
+                        <stop offset="100%" stop-color="#ec4899"/>
                     </linearGradient>
                 </defs>
-                <circle cx="20" cy="20" r="17" fill="none" stroke="url(#g2)" stroke-width="2" stroke-dasharray="70 40" stroke-linecap="round" transform="rotate(-40 20 20)"/>
-                <circle cx="20" cy="20" r="8" fill="url(#g1)"/>
-                <circle cx="31" cy="11" r="3" fill="#ff9d5c"/>
+                <path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z" fill="url(#logoGrad)"/>
             </svg>
-            <span>Benganson AI</span>
+            <div id="brand-text">
+                <h1>Benganson AI</h1>
+                <span>Your AI Assistant</span>
+            </div>
         </div>
 
-        <button id="new-chat-btn" onclick="newChat()">+ New Chat</button>
-
-        <div class="sidebar-section">
-            <h3>Recent</h3>
-            <div class="chat-history-item">Current conversation</div>
+        <div id="nav">
+            <div class="nav-item active" onclick="showHero()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                Chat
+            </div>
+            <div class="nav-item" onclick="triggerFileAttach()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Files
+            </div>
+            <div class="nav-item" onclick="toggleWebSearch()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Web Search
+            </div>
+            <div class="nav-item" onclick="promptAddReminder()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Reminders
+            </div>
+            <div class="nav-item" onclick="showHistory()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                History
+            </div>
+            <div class="nav-item" onclick="openSettings()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Settings
+            </div>
         </div>
 
-        <div class="sidebar-section">
-            <h3>Files</h3>
-            <input type="file" id="fileInput" accept=".txt,.pdf,.docx">
-            <button class="tool-btn" onclick="uploadFile()">Upload File</button>
-            <button class="tool-btn" onclick="quizMe()">Quiz Me</button>
-            <button class="tool-btn" onclick="clearFiles()">New File</button>
-        </div>
+        <div id="sidebar-spacer"></div>
 
-        <div class="sidebar-section">
-            <h3>Reminders</h3>
-            <input id="reminderInput" type="text" placeholder="Add a reminder...">
-            <button class="tool-btn" onclick="addReminder()">Add Reminder</button>
-            <div id="reminders-box"></div>
+        <div id="pro-card" onclick="alert('Pro Mode is a placeholder for now — not a real upgrade yet.')">
+            <svg class="bolt" viewBox="0 0 24 24" fill="url(#logoGrad)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <div class="txt">
+                <b>Pro Mode</b>
+                <span>Smarter. Faster. More capable.</span>
+            </div>
         </div>
     </div>
 
-    <div id="main">
-        <div id="chat-box"></div>
-        <div id="input-wrapper">
-            <div id="search-toggle-row">
-                <input type="checkbox" id="webSearchToggle">
-                <label for="webSearchToggle">Search the web for this</label>
+    <div id="app-main">
+        <div id="topbar">
+            <div id="topsearch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input id="topSearchInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') sendFromTopbar()">
             </div>
-            <div id="search-toggle-row">
-                <input type="checkbox" id="speakToggle">
-                <label for="speakToggle">Speak replies aloud</label>
+            <div id="profile-area">
+                <div id="theme-btn" title="Theme (visual only for now)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </div>
+                <div id="profile-chip" onclick="document.getElementById('profile-dropdown').classList.toggle('show')">
+                    <div id="avatar">{{ user_email[0] | upper }}</div>
+                    <div id="profile-text">
+                        <div class="name" id="profileName"></div>
+                        <div class="email">{{ user_email }}</div>
+                    </div>
+                </div>
+                <div id="profile-dropdown">
+                    <a href="/logout">Log out</a>
+                </div>
             </div>
-            <div id="input-bar">
-                <button id="mic-btn" onclick="startListening()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="2" width="6" height="12" rx="3"/>
-                        <path d="M5 10a7 7 0 0 0 14 0"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                    </svg>
+        </div>
+
+        <div id="hero-view">
+            <div id="glow"></div>
+            <svg class="mark-big" viewBox="0 0 24 24" style="z-index:2;">
+                <path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z" fill="url(#logoGrad)"/>
+            </svg>
+            <h2 style="z-index:2;">Benganson <span class="ai-grad">AI</span></h2>
+            <p class="tagline" style="z-index:2;">Your ideas. My intelligence. Real results.</p>
+            <div id="quick-cards" style="z-index:2;">
+                <div class="qcard" onclick="document.getElementById('message').focus()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    <b>Chat</b>
+                    <span>Ask anything</span>
+                </div>
+                <div class="qcard" onclick="triggerFileAttach()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <b>Upload Files</b>
+                    <span>PDFs, DOCX, TXT...</span>
+                </div>
+                <div class="qcard" onclick="toggleWebSearch(); document.getElementById('message').focus()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <b>Web Search</b>
+                    <span>Get real-time info</span>
+                </div>
+                <div class="qcard" onclick="promptAddReminder()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <b>Reminders</b>
+                    <span>Stay on track</span>
+                </div>
+                <div class="qcard" onclick="quizMe()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <b>More</b>
+                    <span>Explore features</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-view"></div>
+
+        <div id="input-dock">
+            <div id="input-row">
+                <div id="input-pill">
+                    <input id="message" type="text" placeholder="Message Benganson AI..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                    <button id="mic-btn" onclick="startListening()">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="2" width="6" height="12" rx="3"/>
+                            <path d="M5 10a7 7 0 0 0 14 0"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                        </svg>
+                    </button>
+                </div>
+                <button id="send-btn" onclick="sendMessage()">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
                 </button>
-                <input id="message" type="text" placeholder="Message Benganson AI..." onkeypress="if(event.key === 'Enter') sendMessage()">
-                <button id="send-btn" onclick="sendMessage()">➤</button>
             </div>
+            <div id="chip-row">
+                <div class="chip" onclick="triggerFileAttach()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </div>
+                <div class="chip" onclick="triggerFileAttach()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    File
+                </div>
+                <div class="chip" id="webSearchChip" onclick="toggleWebSearch()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    Web Search
+                </div>
+                <div class="chip" onclick="promptAddReminder()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Reminders
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display:none;" onchange="uploadFile()">
+        </div>
+    </div>
+
+    <div id="right-panel">
+        <div id="greeting-card">
+            <div class="icon-box">
+                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 10 17 15 18 22 12 18 6 22 7 15 2 10 9 9 12 2"/></svg>
+            </div>
+            <div>
+                <p>Good to see you,</p>
+                <b id="greetName">there</b>
+                <p>Let's make today productive.</p>
+            </div>
+        </div>
+
+        <div class="side-section">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Quick Actions
+            </h3>
+            <button class="side-btn" onclick="triggerFileAttach()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                Upload File
+            </button>
+            <button class="side-btn" onclick="toggleWebSearch()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Web Search
+            </button>
+            <button class="side-btn" onclick="promptAddReminder()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Add Reminder
+            </button>
+            <button class="side-btn" onclick="clearConversation()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                Clear Conversation
+            </button>
+        </div>
+
+        <div class="side-section">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Reminders
+                <span class="view-all" onclick="toggleShowAllReminders()" id="remindersViewAll">View All</span>
+            </h3>
+            <div id="reminders-box"></div>
+        </div>
+
+        <div class="side-section">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Recent Conversations
+                <span class="view-all" onclick="toggleShowAllConvos()" id="convosViewAll">View All</span>
+            </h3>
+            <div id="recent-convos-box"></div>
+        </div>
+    </div>
+
+    <div id="settings-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:50; align-items:center; justify-content:center;">
+        <div style="background:var(--panel-2); border:1px solid var(--border); border-radius:16px; padding:24px; width:320px;">
+            <h3 style="margin-top:0;">Settings</h3>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <span style="font-size:14px;">Speak replies aloud</span>
+                <input type="checkbox" id="speakToggle">
+            </div>
+            <button class="side-btn" onclick="clearConversation(); closeSettings();">Clear Conversation</button>
+            <a href="/logout" class="side-btn" style="display:block; text-decoration:none; box-sizing:border-box;">Log Out</a>
+            <button class="side-btn" onclick="closeSettings()" style="margin-top:6px;">Close</button>
         </div>
     </div>
 
     <script>
+        let webSearchMode = false;
+        let showAllReminders = false;
+        let showAllConvos = false;
+        let fullHistory = [];
+
         function formatText(text) {
             let formatted = text;
-
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
             formatted = formatted.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, "<em>$1</em>");
             formatted = formatted.replace(/^### (.*)$/gm, "<h3>$1</h3>");
@@ -383,13 +565,11 @@
             const lines = formatted.split("\n");
             let output = [];
             let i = 0;
-
             while (i < lines.length) {
                 const line = lines[i];
                 const isTableRow = line.trim().startsWith("|");
                 const nextLine = lines[i + 1] || "";
                 const isSeparator = /^\|?[\s:-]+\|[\s:|-]+$/.test(nextLine.trim());
-
                 if (isTableRow && isSeparator) {
                     let tableLines = [line];
                     i += 2;
@@ -397,41 +577,77 @@
                         tableLines.push(lines[i]);
                         i++;
                     }
-
-                    const rows = tableLines.map(l =>
-                        l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim())
-                    );
-
+                    const rows = tableLines.map(l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
                     let table = "<table>";
                     rows.forEach((row, idx) => {
                         table += "<tr>";
-                        row.forEach(cell => {
-                            table += idx === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`;
-                        });
+                        row.forEach(cell => { table += idx === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`; });
                         table += "</tr>";
                     });
                     table += "</table>";
-
                     output.push(table);
                 } else {
                     output.push(line);
                     i++;
                 }
             }
-
             formatted = output.join("\n").replace(/\n/g, "<br>");
             return formatted;
         }
 
+        function showHero() {
+            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+            document.querySelector(".nav-item").classList.add("active");
+            if (document.getElementById("chat-view").children.length === 0) {
+                document.getElementById("hero-view").style.display = "flex";
+                document.getElementById("chat-view").style.display = "none";
+            } else {
+                document.getElementById("hero-view").style.display = "none";
+                document.getElementById("chat-view").style.display = "flex";
+            }
+        }
+
+        function showHistory() { showHero(); }
+
+        function switchToChatView() {
+            document.getElementById("hero-view").style.display = "none";
+            document.getElementById("chat-view").style.display = "flex";
+        }
+        function showThinking() {
+            switchToChatView();
+            const chatBox = document.getElementById("chat-view");
+            const row = document.createElement("div");
+            row.className = "row ai";
+            row.id = "thinking-row";
+
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z"/></svg>';
+            row.appendChild(avatar);
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble ai-bubble";
+            bubble.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
+            row.appendChild(bubble);
+
+            chatBox.appendChild(row);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeThinking() {
+            const row = document.getElementById("thinking-row");
+            if (row) row.remove();
+        }
         function addBubble(role, text) {
-            const chatBox = document.getElementById("chat-box");
+            switchToChatView();
+            const chatBox = document.getElementById("chat-view");
             const row = document.createElement("div");
             row.className = "row " + (role === "user" ? "user" : "ai");
 
             if (role !== "user") {
                 const avatar = document.createElement("div");
                 avatar.className = "avatar";
-                avatar.innerHTML = '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#1a1218" stroke-width="2.5" stroke-dasharray="70 40" stroke-linecap="round" transform="rotate(-40 20 20)"/><circle cx="20" cy="20" r="8" fill="#1a1218"/></svg>';
+                avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z"/></svg>';
                 row.appendChild(avatar);
             }
 
@@ -445,83 +661,140 @@
         }
 
         function speak(text) {
-            const speakToggle = document.getElementById("speakToggle");
-            if (!speakToggle.checked) return;
-
+            const toggle = document.getElementById("speakToggle");
+            if (!toggle || !toggle.checked) return;
             const cleanText = text.replace(/[*#_`]/g, "");
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.rate = 1;
             speechSynthesis.speak(utterance);
         }
 
+        function openSettings() {
+            document.getElementById("settings-overlay").style.display = "flex";
+        }
+
+        function closeSettings() {
+            document.getElementById("settings-overlay").style.display = "none";
+        }
+
         async function loadHistory() {
             const response = await fetch("/history");
             const data = await response.json();
+            fullHistory = data.history;
 
             for (const msg of data.history) {
                 if (msg.role === "user" || msg.role === "assistant") {
                     addBubble(msg.role === "user" ? "user" : "ai", msg.content);
                 }
             }
+
+            if (document.getElementById("chat-view").children.length === 0) {
+                document.getElementById("hero-view").style.display = "flex";
+                document.getElementById("chat-view").style.display = "none";
+            }
+
+            renderRecentConvos();
+        }
+
+        function timeAgo(iso) {
+            if (!iso) return "";
+            const diffMs = Date.now() - new Date(iso).getTime();
+            const mins = Math.floor(diffMs / 60000);
+            if (mins < 1) return "just now";
+            if (mins < 60) return mins + "m ago";
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return hrs + "h ago";
+            return Math.floor(hrs / 24) + "d ago";
+        }
+
+        function renderRecentConvos() {
+            const box = document.getElementById("recent-convos-box");
+            box.innerHTML = "";
+
+            const excludedPrefixes = ["I've uploaded a file named", "Based on the file I uploaded", "Search the web for:"];
+            const userMsgs = fullHistory
+                .filter(m => m.role === "user" && !excludedPrefixes.some(p => m.content.startsWith(p)))
+                .reverse();
+
+            const toShow = showAllConvos ? userMsgs : userMsgs.slice(0, 3);
+            document.getElementById("convosViewAll").style.display = userMsgs.length > 3 ? "inline" : "none";
+
+            toShow.forEach(m => {
+                const row = document.createElement("div");
+                row.className = "convo-row";
+                row.innerHTML = `
+                    <div class="bubble-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </div>
+                    <div class="txt">
+                        <b>${m.content.length > 38 ? m.content.slice(0, 38) + "…" : m.content}</b>
+                        <span>${timeAgo(m.time)}</span>
+                    </div>
+                `;
+                box.appendChild(row);
+            });
+        }
+
+        function toggleShowAllConvos() {
+            showAllConvos = !showAllConvos;
+            document.getElementById("convosViewAll").textContent = showAllConvos ? "Show less" : "View All";
+            renderRecentConvos();
         }
 
         async function newChat() {
             await fetch("/reset");
-            document.getElementById("chat-box").innerHTML = "";
+            document.getElementById("chat-view").innerHTML = "";
+            document.getElementById("chat-view").style.display = "none";
+            document.getElementById("hero-view").style.display = "flex";
+            fullHistory = [];
+            renderRecentConvos();
         }
+
+        async function clearConversation() { await newChat(); }
+
+        function triggerFileAttach() { document.getElementById("fileInput").click(); }
 
         async function uploadFile() {
             const fileInput = document.getElementById("fileInput");
             const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Please choose a file first.");
-                return;
-            }
+            if (!file) return;
 
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch("/upload", {
-                method: "POST",
-                body: formData
-            });
-
+            const response = await fetch("/upload", { method: "POST", body: formData });
             const data = await response.json();
             alert(data.status);
         }
 
-        async function quizMe() {
+                async function quizMe() {
             addBubble("user", "Quiz me on the uploaded file.");
-
+            showThinking();
             const response = await fetch(
                 "/chat?message=" + encodeURIComponent("Based on the file I uploaded, create a short 5-question quiz to test my understanding of it. Ask one question at a time, and wait for my answer before giving the next question.")
             );
-
             const data = await response.json();
+            removeThinking();
             addBubble("ai", data.reply);
-            speak(data.reply);
+        }
+        
+
+        function toggleWebSearch() {
+            webSearchMode = !webSearchMode;
+            document.getElementById("webSearchChip").classList.toggle("active", webSearchMode);
         }
 
-        async function clearFiles() {
-            const response = await fetch("/clear-files");
-            const data = await response.json();
-            alert(data.status);
+        async function promptAddReminder() {
+            const text = prompt("What should I remind you about?");
+            if (!text || text.trim() === "") return;
+
+            await fetch("/add-reminder?text=" + encodeURIComponent(text), { method: "POST" });
+            loadReminders();
         }
 
-        async function addReminder() {
-            const reminderInput = document.getElementById("reminderInput");
-            const text = reminderInput.value;
-
-            if (text.trim() === "") {
-                return;
-            }
-
-            await fetch("/add-reminder?text=" + encodeURIComponent(text), {
-                method: "POST"
-            });
-
-            reminderInput.value = "";
+        function toggleShowAllReminders() {
+            showAllReminders = !showAllReminders;
+            document.getElementById("remindersViewAll").textContent = showAllReminders ? "Show less" : "View All";
             loadReminders();
         }
 
@@ -532,80 +805,100 @@
             const box = document.getElementById("reminders-box");
             box.innerHTML = "";
 
-            data.reminders.forEach((r, index) => {
-                const item = document.createElement("div");
-                item.className = "reminder-item";
+            document.getElementById("remindersViewAll").style.display = data.reminders.length > 3 ? "inline" : "none";
+            const toShow = showAllReminders ? data.reminders : data.reminders.slice(0, 3);
 
-                const text = document.createElement("span");
-                text.className = "txt";
-                text.textContent = "📌 " + r.text;
-
-                const deleteBtn = document.createElement("span");
-                deleteBtn.textContent = "✕";
-                deleteBtn.className = "del";
-                deleteBtn.onclick = async () => {
-                    await fetch("/delete-reminder?index=" + index);
+            toShow.forEach((r) => {
+                const realIndex = data.reminders.indexOf(r);
+                const row = document.createElement("div");
+                row.className = "reminder-row";
+                row.innerHTML = `
+                    <div class="dot"></div>
+                    <div class="txt">
+                        <b>${r.text}</b>
+                        <span>${timeAgo(r.time) || "No date"}</span>
+                    </div>
+                `;
+                row.onclick = async () => {
+                    await fetch("/delete-reminder?index=" + realIndex);
                     loadReminders();
                 };
-
-                item.appendChild(text);
-                item.appendChild(deleteBtn);
-                box.appendChild(item);
+                box.appendChild(row);
             });
         }
 
         function startListening() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
             if (!SpeechRecognition) {
                 alert("Sorry, your browser doesn't support voice input. Try Chrome.");
                 return;
             }
-
             const recognition = new SpeechRecognition();
             recognition.lang = "en-US";
             recognition.interimResults = false;
 
             const micBtn = document.getElementById("mic-btn");
-            micBtn.style.color = "#ff3b3b";
+            micBtn.style.color = "#ec4899";
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById("message").value = transcript;
-                micBtn.style.color = "var(--accent-1)";
+                document.getElementById("message").value = event.results[0][0].transcript;
+                micBtn.style.color = "var(--muted)";
             };
-
-            recognition.onerror = () => {
-                micBtn.style.color = "var(--accent-1)";
-            };
-
-            recognition.onend = () => {
-                micBtn.style.color = "var(--accent-1)";
-            };
+            recognition.onerror = () => { micBtn.style.color = "var(--muted)"; };
+            recognition.onend = () => { micBtn.style.color = "var(--muted)"; };
 
             recognition.start();
         }
 
-        async function sendMessage() {
-            const messageInput = document.getElementById("message");
-            const message = messageInput.value;
-            const useWebSearch = document.getElementById("webSearchToggle").checked;
-
-            if (message.trim() === "") {
-                return;
-            }
+                async function sendMessageWithText(message) {
+            if (!message || message.trim() === "") return;
 
             addBubble("user", message);
-            messageInput.value = "";
+            showThinking();
 
-            const endpoint = useWebSearch
+            const endpoint = webSearchMode
                 ? "/web-search?query=" + encodeURIComponent(message)
                 : "/chat?message=" + encodeURIComponent(message);
 
             const response = await fetch(endpoint);
             const data = await response.json();
+            removeThinking();
             addBubble("ai", data.reply);
             speak(data.reply);
+
+            const historyResp = await fetch("/history");
+            fullHistory = (await historyResp.json()).history;
+            renderRecentConvos();
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById("message");
+            const message = messageInput.value;
+            messageInput.value = "";
+            await sendMessageWithText(message);
+        }
+
+        async function sendFromTopbar() {
+            const input = document.getElementById("topSearchInput");
+            const message = input.value;
+            input.value = "";
+            await sendMessageWithText(message);
+        }
+
+        document.addEventListener("click", (e) => {
+            const dropdown = document.getElementById("profile-dropdown");
+            const chip = document.getElementById("profile-chip");
+            if (!chip.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove("show");
+            }
+        });
+
+        const emailEl = document.querySelector("#profile-text .email");
+        if (emailEl) {
+            const name = emailEl.textContent.split("@")[0];
+            const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+            document.getElementById("profileName").textContent = displayName;
+            document.getElementById("greetName").textContent = displayName;
         }
 
         loadHistory();
