@@ -86,15 +86,50 @@ def require_login(request: Request):
 
 
 AUTH_PAGE_STYLE = """
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-    body { background:#0a0a14; color:#f5f4fa; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
-    .card { background:#11101b; padding:30px; border-radius:12px; text-align:center; width:280px; border:1px solid rgba(255,255,255,0.08); }
-    h2 { background:linear-gradient(135deg,#6366f1,#a855f7); -webkit-background-clip:text; background-clip:text; color:transparent; margin-top:0; }
-    input { padding:10px; border-radius:8px; border:1px solid #2a2840; margin-bottom:12px; width:100%; background:#171625; color:#fff; box-sizing:border-box; }
-    button { padding:10px 20px; border-radius:8px; border:none; background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; font-weight:bold; cursor:pointer; width:100%; }
+    * { box-sizing: border-box; }
+    body { background:#0a0a14; color:#f5f4fa; font-family:'Inter',sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:20px; }
+    .card { background:#11101b; padding:32px 28px; border-radius:16px; text-align:center; width:100%; max-width:300px; border:1px solid rgba(255,255,255,0.08); }
+    .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:18px; }
+    .brand h2 { font-family:'Space Grotesk',sans-serif; font-size:19px; font-weight:700; background:linear-gradient(135deg,#60a5fa,#a855f7,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent; margin:0; }
+
+    /* Benganson AI login branding — matches the main app */
+    .login-brand {
+        flex-direction:column;
+        gap:10px;
+        margin-bottom:26px;
+    }
+    .login-brand svg {
+        width:64px;
+        height:64px;
+        filter:drop-shadow(0 0 16px rgba(168,85,247,0.35));
+    }
+    .login-brand h2 {
+        font-size:28px;
+        font-weight:800;
+        letter-spacing:-0.8px;
+    }
+    input { padding:11px; border-radius:8px; border:1px solid #2a2840; margin-bottom:12px; width:100%; background:#171625; color:#fff; font-size:15px; }
+    button { padding:12px 20px; border-radius:8px; border:none; background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; font-weight:bold; cursor:pointer; width:100%; font-size:15px; }
     a { color:#a855f7; font-size:13px; }
     p.error { color:#ec4899; font-size:13px; }
 </style>
+"""
+
+AUTH_LOGO_SVG = """
+<svg width="30" height="30" viewBox="0 0 24 24">
+    <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#60a5fa"/>
+            <stop offset="50%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient>
+    </defs>
+    <path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z" fill="url(#logoGrad)"/>
+</svg>
 """
 
 
@@ -105,7 +140,7 @@ def login_page(error: str = ""):
     <html><body>
     {AUTH_PAGE_STYLE}
     <div class="card">
-        <h2>Benganson AI</h2>
+        <div class="brand login-brand">{AUTH_LOGO_SVG}<h2>Benganson AI</h2></div>
         <form method="post" action="/login">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
@@ -137,7 +172,7 @@ def signup_page(error: str = ""):
     <html><body>
     {AUTH_PAGE_STYLE}
     <div class="card">
-        <h2>Create account</h2>
+        <div class="brand">{AUTH_LOGO_SVG}<h2>Create account</h2></div>
         <form method="post" action="/signup">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password (min 6 chars)" required>
