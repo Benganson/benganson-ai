@@ -31,6 +31,7 @@ db = mongo_client["bengansonai"]
 users_col = db["users"]
 history_col = db["history"]
 reminders_col = db["reminders"]
+memory_col = db["memory"]
 
 DEFAULT_SYSTEM_MESSAGE = {
     "role": "system",
@@ -45,8 +46,6 @@ DEFAULT_SYSTEM_MESSAGE = {
         "(his age, exact plans, other projects, etc.), say you don't have that information."
     )
 }
-
-
 
 
 def now_iso():
@@ -68,18 +67,59 @@ def save_history(email, messages):
     )
 
 
-def build_groq_messages(conversation_history):
+def load_memory(email):
+    doc = memory_col.find_one({"email": email})
+    if doc:
+        return doc["facts"]
+    return []
+
+
+def save_memory(email, facts):
+    memory_col.update_one(
+        {"email": email},
+        {"$set": {"facts": facts}},
+        upsert=True
+    )
+
+
+def build_system_message(email):
+    """
+    Builds a fresh system message every time, combining the base
+    Benganson AI identity with any personal facts remembered about
+    this specific user. This way, remembered facts stay up to date
+    even after a conversation is cleared.
+    """
+
+    facts = load_memory(email)
+
+    content = DEFAULT_SYSTEM_MESSAGE["content"]
+
+    if facts:
+        facts_text = "\n".join(f"- {fact}" for fact in facts)
+        content += (
+            "\n\nHere are some facts you have been told to remember about "
+            "this specific user from previous conversations. Use them "
+            "naturally when relevant, but don't force them into every "
+            "reply, and don't repeat them back unless it makes sense to:\n"
+            f"{facts_text}"
+        )
+
+    return {
+        "role": "system",
+        "content": content
+    }
+
+
+def build_groq_messages(conversation_history, email):
     """
     Keep the full conversation history in MongoDB,
     but only send recent messages to Groq to avoid
     exceeding the Groq token-per-minute limit.
-    """
 
-    system_messages = [
-        message
-        for message in conversation_history
-        if message.get("role") == "system"
-    ]
+    The system message is always rebuilt fresh (instead of reusing
+    whatever was saved in history) so remembered facts about the
+    user are always current.
+    """
 
     non_system_messages = [
         message
@@ -89,7 +129,9 @@ def build_groq_messages(conversation_history):
 
     recent_messages = non_system_messages[-10:]
 
-    messages_for_groq = system_messages + recent_messages
+    system_message = build_system_message(email)
+
+    messages_for_groq = [system_message] + recent_messages
 
     return [
         {
@@ -620,7 +662,7 @@ def get_history(
 
 
 # ============================================================
-# RESET MEMORY
+# RESET MEMORY (conversation history only — not remembered facts)
 # ============================================================
 
 @app.get("/reset")
@@ -715,6 +757,68 @@ def delete_reminder(
 
 
 # ============================================================
+# PERSONAL MEMORY (facts remembered about this specific user)
+# ============================================================
+
+@app.post("/add-memory")
+def add_memory(
+    request: Request,
+    text: str,
+    _: bool = Depends(require_login)
+):
+    email = request.session.get("user")
+
+    facts = load_memory(email)
+
+    facts.append(text)
+
+    save_memory(
+        email,
+        facts
+    )
+
+    return {
+        "status": "Got it, I'll remember that.",
+        "facts": facts
+    }
+
+
+@app.get("/memory")
+def get_memory(
+    request: Request,
+    _: bool = Depends(require_login)
+):
+    email = request.session.get("user")
+
+    return {
+        "facts": load_memory(email)
+    }
+
+
+@app.get("/delete-memory")
+def delete_memory(
+    request: Request,
+    index: int,
+    _: bool = Depends(require_login)
+):
+    email = request.session.get("user")
+
+    facts = load_memory(email)
+
+    if 0 <= index < len(facts):
+        facts.pop(index)
+
+        save_memory(
+            email,
+            facts
+        )
+
+    return {
+        "facts": facts
+    }
+
+
+# ============================================================
 # WEB SEARCH
 # ============================================================
 
@@ -761,7 +865,8 @@ def web_search(
         response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=build_groq_messages(
-                conversation_history
+                conversation_history,
+                email
             )
         )
 
@@ -816,7 +921,8 @@ def chat(
         response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=build_groq_messages(
-                conversation_history
+                conversation_history,
+                email
             )
         )
 
