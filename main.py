@@ -57,6 +57,39 @@ def save_history(email, messages):
     )
 
 
+def build_groq_messages(conversation_history):
+    """
+    Keep the full conversation history in MongoDB,
+    but only send recent messages to Groq to avoid
+    exceeding the Groq token-per-minute limit.
+    """
+
+    system_messages = [
+        message
+        for message in conversation_history
+        if message.get("role") == "system"
+    ]
+
+    non_system_messages = [
+        message
+        for message in conversation_history
+        if message.get("role") != "system"
+    ]
+
+    recent_messages = non_system_messages[-10:]
+
+    messages_for_groq = system_messages + recent_messages
+
+    return [
+        {
+            key: value
+            for key, value in message.items()
+            if key != "time"
+        }
+        for message in messages_for_groq
+    ]
+
+
 def load_reminders(email):
     doc = reminders_col.find_one({"email": email})
     if doc:
@@ -716,14 +749,9 @@ def web_search(
     try:
         response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
-            messages=[
-                {
-                    k: v
-                    for k, v in m.items()
-                    if k != "time"
-                }
-                for m in conversation_history
-            ]
+            messages=build_groq_messages(
+                conversation_history
+            )
         )
 
         reply = response.choices[0].message.content
@@ -776,14 +804,9 @@ def chat(
     try:
         response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
-            messages=[
-                {
-                    k: v
-                    for k, v in m.items()
-                    if k != "time"
-                }
-                for m in conversation_history
-            ]
+            messages=build_groq_messages(
+                conversation_history
+            )
         )
 
         reply = response.choices[0].message.content

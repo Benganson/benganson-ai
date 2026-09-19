@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-
+ 
         :root {
             --bg: #0a0a14;
             --sidebar: #0d0c17;
@@ -23,7 +25,7 @@
             --gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             --gradient-tri: linear-gradient(135deg, #60a5fa, var(--accent-2), var(--accent-3));
         }
-
+ 
         body {
             background-color: var(--bg);
             color: var(--text);
@@ -33,7 +35,7 @@
             height: 100vh;
             overflow: hidden;
         }
-
+ 
         #sidebar {
             width: 280px;
             flex-shrink: 0;
@@ -66,9 +68,9 @@
         #pro-card .txt { flex: 1; }
         #pro-card .txt b { font-size: 13px; display: block; }
         #pro-card .txt span { font-size: 11px; color: var(--muted); }
-
+ 
         #app-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-
+ 
         #topbar {
             height: 70px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: space-between;
@@ -103,7 +105,7 @@
         #profile-dropdown.show { display: block; }
         #profile-dropdown a { display: block; padding: 8px 10px; border-radius: 7px; color: var(--text); font-size: 13px; text-decoration: none; }
         #profile-dropdown a:hover { background-color: var(--panel); }
-
+ 
         #hero-view {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; overflow: hidden; padding: 20px;
@@ -125,7 +127,7 @@
             position: absolute; bottom: -160px; width: 700px; height: 350px; border-radius: 50%;
             background: radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%); z-index: 1;
         }
-
+ 
         #chat-view { flex: 1; display: none; flex-direction: column; overflow-y: auto; padding: 28px 32px 10px 32px; }
         .row { display: flex; gap: 10px; margin-top: 16px; align-items: flex-start; }
         .row.user { justify-content: flex-end; }
@@ -144,29 +146,63 @@
         .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
         .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes bounce { 0%, 80%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-4px); } }
-
+ 
         #input-dock { flex-shrink: 0; padding: 14px 32px 22px 32px; display: flex; flex-direction: column; align-items: center; }
-        #input-row { width: 100%; max-width: 800px; display: flex; align-items: center; gap: 10px; }
+        #input-row { width: 100%; max-width: 800px; display: flex; align-items: center; gap: 10px; position: relative; }
         #input-pill {
-            flex: 1; display: flex; align-items: center;
-            background-color: var(--panel-2); border: 1px solid var(--border); border-radius: 24px; padding: 6px 8px 6px 18px;
+            flex: 1; display: flex; align-items: flex-end;
+            background-color: var(--panel-2); border: 1px solid var(--border); border-radius: 24px; padding: 6px 8px;
         }
-        #input-pill input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 15px; padding: 10px 0; min-width: 0; }
-        #input-pill input:focus { outline: none; }
-        #mic-btn { background: transparent; border: none; color: var(--muted); padding: 8px; cursor: pointer; display: flex; align-items: center; }
+        #plus-btn {
+            width: 34px; height: 34px; border-radius: 50%; border: none; background: transparent;
+            color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; position: relative;
+        }
+        #plus-btn svg { width: 18px; height: 18px; }
+        #plus-btn:hover { background-color: var(--panel); color: var(--text); }
+        #plus-btn.active { color: #fff; background: rgba(99,102,241,0.22); }
+        #plus-btn.active::after {
+            content: ""; position: absolute; top: 3px; right: 3px; width: 7px; height: 7px;
+            border-radius: 50%; background: #22c55e; border: 1.5px solid var(--panel-2);
+        }
+        #message {
+            flex: 1; border: none; background: transparent; color: var(--text);
+            font-size: 15px; font-family: 'Inter', sans-serif; padding: 10px 6px;
+            min-width: 0; resize: none; max-height: 140px; overflow-y: auto; line-height: 1.4;
+        }
+        #message:focus { outline: none; }
+        #message::-webkit-scrollbar { width: 4px; }
+        #message::-webkit-scrollbar-thumb { background-color: #26243a; border-radius: 10px; }
+        #mic-btn { background: transparent; border: none; color: var(--muted); padding: 8px; cursor: pointer; display: flex; align-items: center; flex-shrink: 0; }
         #send-btn {
             width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--gradient); color: #fff; cursor: pointer;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        #chip-row { display: flex; gap: 8px; margin-top: 12px; max-width: 800px; width: 100%; }
-        .chip {
-            display: flex; align-items: center; gap: 6px; background-color: var(--panel-2); border: 1px solid var(--border);
-            color: var(--muted); font-size: 12.5px; padding: 7px 12px; border-radius: 18px; cursor: pointer;
+ 
+        .tool-menu {
+            display: none; flex-direction: column; gap: 2px;
+            position: absolute; bottom: calc(100% + 10px); left: 0;
+            background-color: var(--panel-2); border: 1px solid var(--border); border-radius: 14px;
+            padding: 8px; min-width: 220px; box-shadow: 0 12px 30px rgba(0,0,0,0.45); z-index: 30;
         }
-        .chip svg { width: 14px; height: 14px; }
-        .chip:hover { color: var(--text); }
-        .chip.active { background: rgba(99,102,241,0.18); color: #fff; border-color: rgba(99,102,241,0.4); }
-
+        .tool-menu.show { display: flex; }
+        .tool-menu-title {
+            font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; padding: 6px 10px 4px 10px;
+        }
+        .tool-menu-item {
+            display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+            background: transparent; border: none; color: var(--text); font-size: 14px;
+            padding: 9px 10px; border-radius: 9px; cursor: pointer;
+        }
+        .tool-menu-item:hover { background-color: var(--panel); }
+        .tool-menu-item.active { background-color: rgba(99,102,241,0.18); }
+        .tool-menu-item .tool-emoji { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+        .tool-menu-item .badge {
+            margin-left: auto; font-size: 10px; color: var(--muted); background-color: var(--panel);
+            padding: 2px 7px; border-radius: 8px;
+        }
+ 
         #right-panel {
             width: 320px; flex-shrink: 0; background-color: var(--sidebar); border-left: 1px solid var(--border);
             padding: 24px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
@@ -198,10 +234,10 @@
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         .convo-row .bubble-icon svg { width: 13px; height: 13px; color: var(--muted); }
-
+ 
         #chat-view::-webkit-scrollbar, #right-panel::-webkit-scrollbar { width: 6px; }
         #chat-view::-webkit-scrollbar-thumb, #right-panel::-webkit-scrollbar-thumb { background-color: #26243a; border-radius: 10px; }
-
+ 
         #hamburger-btn {
             display: none;
             width: 34px; height: 34px; border-radius: 8px;
@@ -211,7 +247,7 @@
             flex-shrink: 0;
         }
         #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-
+ 
         @media (max-width: 900px) {
             #hamburger-btn { display: flex; }
             #right-panel { display: none; }
@@ -224,12 +260,41 @@
             #hero-view h2 { font-size: 32px; }
             #hero-view .mark-big { width: 60px; height: 60px; }
             .qcard { width: 100px; padding: 14px 8px; }
-            #chip-row { flex-wrap: wrap; }
             .bubble { max-width: 88%; }
             #topbar { padding: 0 14px; }
-            #chat-view { padding: 20px 16px 10px 16px; }
-            #input-dock { padding: 12px 16px calc(18px + env(safe-area-inset-bottom, 0px) + 32px) 16px; }
+ 
+            #app-main {
+                height: 100dvh;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            #chat-view {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+                padding: 20px 16px 12px 16px;
+            }
+            #input-dock {
+                position: sticky;
+                bottom: 0;
+                z-index: 20;
+                flex-shrink: 0;
+                padding: 12px 16px calc(18px + env(safe-area-inset-bottom, 0px) + 32px) 16px;
+            }
+            #input-pill { min-height: 46px; }
+            #message { max-height: 120px; }
+            #tool-menu { min-width: 200px; }
             #profile-text { display: none; }
+        }
+ 
+        @media (max-width: 420px) {
+            .tool-menu { min-width: 180px; left: -4px; }
+            #plus-btn { width: 30px; height: 30px; }
+            #send-btn { width: 36px; height: 36px; }
+            #chat-view { padding: 16px 12px 10px 12px; }
+            #input-dock { padding-left: 12px; padding-right: 12px; }
+            .qcard { width: 90px; }
         }
     </style>
 </head>
@@ -251,7 +316,7 @@
                 <span>Your AI Assistant</span>
             </div>
         </div>
-
+ 
         <div id="nav">
             <div class="nav-item active" onclick="showHero()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -278,9 +343,9 @@
                 Settings
             </div>
         </div>
-
+ 
         <div id="sidebar-spacer"></div>
-
+ 
         <div id="pro-card" onclick="alert('Pro Mode is a placeholder for now — not a real upgrade yet.')">
             <svg class="bolt" viewBox="0 0 24 24" fill="url(#logoGrad)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <div class="txt">
@@ -289,9 +354,9 @@
             </div>
         </div>
     </div>
-
+ 
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
-
+ 
     <div id="app-main">
         <div id="topbar">
             <button id="hamburger-btn" onclick="toggleSidebar()">
@@ -317,7 +382,7 @@
                 </div>
             </div>
         </div>
-
+ 
         <div id="hero-view">
             <div id="glow"></div>
             <svg class="mark-big" viewBox="0 0 24 24" style="z-index:2;">
@@ -353,13 +418,16 @@
                 </div>
             </div>
         </div>
-
+ 
         <div id="chat-view"></div>
-
+ 
         <div id="input-dock">
             <div id="input-row">
                 <div id="input-pill">
-                    <input id="message" type="text" placeholder="Message Benganson AI..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                    <button type="button" id="plus-btn" onclick="toggleToolMenu(event)" aria-label="Add" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <textarea id="message" rows="1" placeholder="Message Benganson AI..."></textarea>
                     <button id="mic-btn" onclick="startListening()">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="9" y="2" width="6" height="12" rx="3"/>
@@ -372,28 +440,32 @@
                 <button id="send-btn" onclick="sendMessage()">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
                 </button>
-            </div>
-            <div id="chip-row">
-                <div class="chip" onclick="triggerFileAttach()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                </div>
-                <div class="chip" onclick="triggerFileAttach()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    File
-                </div>
-                <div class="chip" id="webSearchChip" onclick="toggleWebSearch()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    Web Search
-                </div>
-                <div class="chip" onclick="promptAddReminder()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                    Reminders
+ 
+                <div id="tool-menu" class="tool-menu">
+                    <div class="tool-menu-title">Add to your message</div>
+                    <button type="button" class="tool-menu-item" onclick="handleToolClick('upload')">
+                        <span class="tool-emoji">📎</span> Upload file
+                    </button>
+                    <button type="button" class="tool-menu-item" onclick="handleToolClick('image')">
+                        <span class="tool-emoji">🖼</span> Add image
+                        <span class="badge">Soon</span>
+                    </button>
+                    <button type="button" id="toolWebSearchItem" class="tool-menu-item" onclick="handleToolClick('websearch')">
+                        <span class="tool-emoji">🌐</span> Search the web
+                    </button>
+                    <button type="button" class="tool-menu-item" onclick="handleToolClick('study')">
+                        <span class="tool-emoji">🧠</span> Study mode
+                    </button>
+                    <button type="button" class="tool-menu-item" onclick="handleToolClick('createimage')">
+                        <span class="tool-emoji">🎨</span> Create image
+                        <span class="badge">Soon</span>
+                    </button>
                 </div>
             </div>
             <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display:none;" onchange="uploadFile()">
         </div>
     </div>
-
+ 
     <div id="right-panel">
         <div id="greeting-card">
             <div class="icon-box">
@@ -405,7 +477,7 @@
                 <p>Let's make today productive.</p>
             </div>
         </div>
-
+ 
         <div class="side-section">
             <h3>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -428,7 +500,7 @@
                 Clear Conversation
             </button>
         </div>
-
+ 
         <div class="side-section">
             <h3>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -437,7 +509,7 @@
             </h3>
             <div id="reminders-box"></div>
         </div>
-
+ 
         <div class="side-section">
             <h3>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -447,7 +519,7 @@
             <div id="recent-convos-box"></div>
         </div>
     </div>
-
+ 
     <div id="settings-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:60; align-items:center; justify-content:center;">
         <div style="background:var(--panel-2); border:1px solid var(--border); border-radius:16px; padding:24px; width:90%; max-width:320px;">
             <h3 style="margin-top:0;">Settings</h3>
@@ -460,25 +532,25 @@
             <button class="side-btn" onclick="closeSettings()" style="margin-top:6px;">Close</button>
         </div>
     </div>
-
+ 
     <script>
         let webSearchMode = false;
         let showAllReminders = false;
         let showAllConvos = false;
         let fullHistory = [];
-
+ 
         function toggleSidebar() {
             document.getElementById("sidebar").classList.toggle("open");
             document.getElementById("sidebar-overlay").classList.toggle("show");
         }
-
+ 
         function formatText(text) {
             let formatted = text;
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
             formatted = formatted.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, "<em>$1</em>");
             formatted = formatted.replace(/^### (.*)$/gm, "<h3>$1</h3>");
             formatted = formatted.replace(/^## (.*)$/gm, "<h2>$1</h2>");
-
+ 
             const lines = formatted.split("\n");
             let output = [];
             let i = 0;
@@ -511,7 +583,7 @@
             formatted = output.join("\n").replace(/\n/g, "<br>");
             return formatted;
         }
-
+ 
         function showHero() {
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
             document.querySelector(".nav-item").classList.add("active");
@@ -524,62 +596,62 @@
             }
             if (window.innerWidth <= 900) toggleSidebar();
         }
-
+ 
         function showHistory() { showHero(); }
-
+ 
         function switchToChatView() {
             document.getElementById("hero-view").style.display = "none";
             document.getElementById("chat-view").style.display = "flex";
         }
-
+ 
         function showThinking() {
             switchToChatView();
             const chatBox = document.getElementById("chat-view");
             const row = document.createElement("div");
             row.className = "row ai";
             row.id = "thinking-row";
-
+ 
             const avatar = document.createElement("div");
             avatar.className = "avatar";
             avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z"/></svg>';
             row.appendChild(avatar);
-
+ 
             const bubble = document.createElement("div");
             bubble.className = "bubble ai-bubble";
             bubble.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
             row.appendChild(bubble);
-
+ 
             chatBox.appendChild(row);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
-
+ 
         function removeThinking() {
             const row = document.getElementById("thinking-row");
             if (row) row.remove();
         }
-
+ 
         function addBubble(role, text) {
             switchToChatView();
             const chatBox = document.getElementById("chat-view");
             const row = document.createElement("div");
             row.className = "row " + (role === "user" ? "user" : "ai");
-
+ 
             if (role !== "user") {
                 const avatar = document.createElement("div");
                 avatar.className = "avatar";
                 avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C12.8 7 17 11.2 22 12C17 12.8 12.8 17 12 22C11.2 17 7 12.8 2 12C7 11.2 11.2 7 12 2Z"/></svg>';
                 row.appendChild(avatar);
             }
-
+ 
             const bubble = document.createElement("div");
             bubble.className = "bubble " + (role === "user" ? "user-bubble" : "ai-bubble");
             bubble.innerHTML = formatText(text);
             row.appendChild(bubble);
-
+ 
             chatBox.appendChild(row);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
-
+ 
         function speak(text) {
             const toggle = document.getElementById("speakToggle");
             if (!toggle || !toggle.checked) return;
@@ -588,34 +660,34 @@
             utterance.rate = 1;
             speechSynthesis.speak(utterance);
         }
-
+ 
         function openSettings() {
             document.getElementById("settings-overlay").style.display = "flex";
         }
-
+ 
         function closeSettings() {
             document.getElementById("settings-overlay").style.display = "none";
         }
-
+ 
         async function loadHistory() {
             const response = await fetch("/history");
             const data = await response.json();
             fullHistory = data.history;
-
+ 
             for (const msg of data.history) {
                 if (msg.role === "user" || msg.role === "assistant") {
                     addBubble(msg.role === "user" ? "user" : "ai", msg.content);
                 }
             }
-
+ 
             if (document.getElementById("chat-view").children.length === 0) {
                 document.getElementById("hero-view").style.display = "flex";
                 document.getElementById("chat-view").style.display = "none";
             }
-
+ 
             renderRecentConvos();
         }
-
+ 
         function timeAgo(iso) {
             if (!iso) return "";
             const diffMs = Date.now() - new Date(iso).getTime();
@@ -626,19 +698,19 @@
             if (hrs < 24) return hrs + "h ago";
             return Math.floor(hrs / 24) + "d ago";
         }
-
+ 
         function renderRecentConvos() {
             const box = document.getElementById("recent-convos-box");
             box.innerHTML = "";
-
+ 
             const excludedPrefixes = ["I've uploaded a file named", "Based on the file I uploaded", "Search the web for:"];
             const userMsgs = fullHistory
                 .filter(m => m.role === "user" && !excludedPrefixes.some(p => m.content.startsWith(p)))
                 .reverse();
-
+ 
             const toShow = showAllConvos ? userMsgs : userMsgs.slice(0, 3);
             document.getElementById("convosViewAll").style.display = userMsgs.length > 3 ? "inline" : "none";
-
+ 
             toShow.forEach(m => {
                 const row = document.createElement("div");
                 row.className = "convo-row";
@@ -654,13 +726,13 @@
                 box.appendChild(row);
             });
         }
-
+ 
         function toggleShowAllConvos() {
             showAllConvos = !showAllConvos;
             document.getElementById("convosViewAll").textContent = showAllConvos ? "Show less" : "View All";
             renderRecentConvos();
         }
-
+ 
         async function newChat() {
             await fetch("/reset");
             document.getElementById("chat-view").innerHTML = "";
@@ -669,64 +741,77 @@
             fullHistory = [];
             renderRecentConvos();
         }
-
+ 
         async function clearConversation() { await newChat(); }
-
+ 
         function triggerFileAttach() { document.getElementById("fileInput").click(); }
-
+ 
         async function uploadFile() {
             const fileInput = document.getElementById("fileInput");
             const file = fileInput.files[0];
             if (!file) return;
-
+ 
             const formData = new FormData();
             formData.append("file", file);
-
-            const response = await fetch("/upload", { method: "POST", body: formData });
-            const data = await response.json();
-            alert(data.status);
+ 
+            try {
+                const response = await fetch("/upload", { method: "POST", body: formData });
+                const data = await response.json();
+                alert(data.status);
+            } catch (err) {
+                alert("Sorry, the upload failed. Please try again.");
+            }
         }
-
+ 
         async function quizMe() {
             addBubble("user", "Quiz me on the uploaded file.");
             showThinking();
-            const response = await fetch(
-                "/chat?message=" + encodeURIComponent("Based on the file I uploaded, create a short 5-question quiz to test my understanding of it. Ask one question at a time, and wait for my answer before giving the next question.")
-            );
-            const data = await response.json();
-            removeThinking();
-            addBubble("ai", data.reply);
+            try {
+                const response = await fetch(
+                    "/chat?message=" + encodeURIComponent("Based on the file I uploaded, create a short 5-question quiz to test my understanding of it. Ask one question at a time, and wait for my answer before giving the next question.")
+                );
+                if (!response.ok) throw new Error("Request failed");
+                const data = await response.json();
+                removeThinking();
+                addBubble("ai", data.reply);
+            } catch (err) {
+                removeThinking();
+                addBubble("ai", "Sorry, I'm having trouble connecting right now. Please try again in a moment.");
+            }
         }
-
+ 
         function toggleWebSearch() {
             webSearchMode = !webSearchMode;
-            document.getElementById("webSearchChip").classList.toggle("active", webSearchMode);
+            const menuItem = document.getElementById("toolWebSearchItem");
+            if (menuItem) menuItem.classList.toggle("active", webSearchMode);
+            const plusBtn = document.getElementById("plus-btn");
+            if (plusBtn) plusBtn.classList.toggle("active", webSearchMode);
         }
-
+ 
         async function promptAddReminder() {
             const text = prompt("What should I remind you about?");
             if (!text || text.trim() === "") return;
-
+ 
             await fetch("/add-reminder?text=" + encodeURIComponent(text), { method: "POST" });
             loadReminders();
         }
-
+ 
         function toggleShowAllReminders() {
             showAllReminders = !showAllReminders;
             document.getElementById("remindersViewAll").textContent = showAllReminders ? "Show less" : "View All";
             loadReminders();
         }
-
+ 
         async function loadReminders() {
             const response = await fetch("/reminders");
             const data = await response.json();
-
+ 
             const box = document.getElementById("reminders-box");
             box.innerHTML = "";
-
+ 
             document.getElementById("remindersViewAll").style.display = data.reminders.length > 3 ? "inline" : "none";
             const toShow = showAllReminders ? data.reminders : data.reminders.slice(0, 3);
-
+ 
             toShow.forEach((r) => {
                 const realIndex = data.reminders.indexOf(r);
                 const row = document.createElement("div");
@@ -745,7 +830,7 @@
                 box.appendChild(row);
             });
         }
-
+ 
         function startListening() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
@@ -755,63 +840,141 @@
             const recognition = new SpeechRecognition();
             recognition.lang = "en-US";
             recognition.interimResults = false;
-
+ 
             const micBtn = document.getElementById("mic-btn");
             micBtn.style.color = "#ec4899";
-
+ 
             recognition.onresult = (event) => {
-                document.getElementById("message").value = event.results[0][0].transcript;
+                const messageInput = document.getElementById("message");
+                messageInput.value = event.results[0][0].transcript;
+                autoResizeTextarea(messageInput);
                 micBtn.style.color = "var(--muted)";
             };
             recognition.onerror = () => { micBtn.style.color = "var(--muted)"; };
             recognition.onend = () => { micBtn.style.color = "var(--muted)"; };
-
+ 
             recognition.start();
         }
-
+ 
         async function sendMessageWithText(message) {
             if (!message || message.trim() === "") return;
-
+ 
             addBubble("user", message);
             showThinking();
-
+ 
             const endpoint = webSearchMode
                 ? "/web-search?query=" + encodeURIComponent(message)
                 : "/chat?message=" + encodeURIComponent(message);
-
-            const response = await fetch(endpoint);
-            const data = await response.json();
-            removeThinking();
-            addBubble("ai", data.reply);
-            speak(data.reply);
-
-            const historyResp = await fetch("/history");
-            fullHistory = (await historyResp.json()).history;
-            renderRecentConvos();
+ 
+            try {
+                const response = await fetch(endpoint);
+                if (!response.ok) throw new Error("Request failed");
+                const data = await response.json();
+                removeThinking();
+                addBubble("ai", data.reply);
+                speak(data.reply);
+            } catch (err) {
+                removeThinking();
+                addBubble("ai", "Sorry, I'm having trouble connecting right now. Please try again in a moment.");
+                return;
+            }
+ 
+            try {
+                const historyResp = await fetch("/history");
+                fullHistory = (await historyResp.json()).history;
+                renderRecentConvos();
+            } catch (err) {
+                // non-critical: recent conversations list just won't refresh this round
+            }
         }
-
+ 
+        function autoResizeTextarea(el) {
+            el.style.height = "auto";
+            el.style.height = Math.min(el.scrollHeight, 140) + "px";
+        }
+ 
         async function sendMessage() {
             const messageInput = document.getElementById("message");
             const message = messageInput.value;
             messageInput.value = "";
+            autoResizeTextarea(messageInput);
             await sendMessageWithText(message);
+            messageInput.focus();
         }
-
+ 
         async function sendFromTopbar() {
             const input = document.getElementById("topSearchInput");
             const message = input.value;
             input.value = "";
             await sendMessageWithText(message);
         }
-
+ 
+        function toggleToolMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById("tool-menu");
+            const plusBtn = document.getElementById("plus-btn");
+            const isOpen = menu.classList.toggle("show");
+            plusBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        }
+ 
+        function closeToolMenu() {
+            const menu = document.getElementById("tool-menu");
+            const plusBtn = document.getElementById("plus-btn");
+            menu.classList.remove("show");
+            plusBtn.setAttribute("aria-expanded", "false");
+        }
+ 
+        function handleToolClick(type) {
+            if (type === "upload") {
+                triggerFileAttach();
+            } else if (type === "websearch") {
+                toggleWebSearch();
+            } else if (type === "study") {
+                quizMe();
+            } else if (type === "image") {
+                addBubble("ai", "🖼 Adding images to a message is coming soon — I can't read images yet, but it's on the way!");
+            } else if (type === "createimage") {
+                addBubble("ai", "🎨 Image creation is coming soon! I can't generate images yet, but it's on the way.");
+            }
+            closeToolMenu();
+        }
+ 
         document.addEventListener("click", (e) => {
             const dropdown = document.getElementById("profile-dropdown");
             const chip = document.getElementById("profile-chip");
             if (!chip.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.remove("show");
             }
+ 
+            const toolMenu = document.getElementById("tool-menu");
+            const plusBtn = document.getElementById("plus-btn");
+            if (toolMenu && plusBtn && !toolMenu.contains(e.target) && !plusBtn.contains(e.target)) {
+                toolMenu.classList.remove("show");
+            }
         });
-
+ 
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeToolMenu();
+            }
+        });
+ 
+        const messageEl = document.getElementById("message");
+        messageEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        messageEl.addEventListener("input", () => autoResizeTextarea(messageEl));
+ 
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", () => {
+                const chatBox = document.getElementById("chat-view");
+                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+ 
         const emailEl = document.querySelector("#profile-text .email");
         if (emailEl) {
             const name = emailEl.textContent.split("@")[0];
@@ -819,9 +982,18 @@
             document.getElementById("profileName").textContent = displayName;
             document.getElementById("greetName").textContent = displayName;
         }
-
+ 
         loadHistory();
         loadReminders();
     </script>
 </body>
 </html>
+ 
+
+
+
+
+
+
+
+
