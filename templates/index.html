@@ -17,11 +17,23 @@
             --border: rgba(255,255,255,0.08);
             --text: #f5f4fa;
             --muted: #8b899b;
+            --scrollbar-thumb: #26243a;
             --accent-1: #6366f1;
             --accent-2: #a855f7;
             --accent-3: #ec4899;
             --gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             --gradient-tri: linear-gradient(135deg, #60a5fa, var(--accent-2), var(--accent-3));
+        }
+
+        body.light-theme {
+            --bg: #f6f5fb;
+            --sidebar: #ffffff;
+            --panel: #edecf5;
+            --panel-2: #ffffff;
+            --border: rgba(20,19,31,0.09);
+            --text: #14131f;
+            --muted: #6b6880;
+            --scrollbar-thumb: #d8d6e6;
         }
 
         body {
@@ -56,7 +68,7 @@
         }
         .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
         .nav-item:hover { background-color: var(--panel-2); color: var(--text); }
-        .nav-item.active { background: rgba(99,102,241,0.16); color: #fff; }
+        .nav-item.active { background: rgba(99,102,241,0.16); color: var(--text); }
         #sidebar-spacer { flex: 1; }
         #pro-card {
             background-color: var(--panel-2); border: 1px solid var(--border); border-radius: 14px;
@@ -87,6 +99,7 @@
             background-color: var(--panel-2); border: 1px solid var(--border);
             display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer;
         }
+        #theme-btn:hover { color: var(--text); }
         #profile-chip { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         #avatar {
             width: 34px; height: 34px; border-radius: 50%; background: var(--gradient); color: #fff; font-weight: 700;
@@ -109,7 +122,7 @@
             position: relative; overflow: hidden; padding: 20px;
         }
         #hero-view .mark-big { width: 84px; height: 84px; margin-bottom: 18px; }
-        #hero-view h2 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; font-weight: 800; margin: 0; text-align: center; }
+        #hero-view h2 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; font-weight: 800; margin: 0; text-align: center; color: var(--text); }
         #hero-view h2 .ai-grad { background: var(--gradient-tri); -webkit-background-clip: text; background-clip: text; color: transparent; }
         #hero-view p.tagline { color: var(--muted); font-size: 16px; margin: 10px 0 30px 0; text-align: center; }
         #quick-cards { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; z-index: 2; }
@@ -119,12 +132,13 @@
         }
         .qcard:hover { border-color: rgba(168,85,247,0.4); }
         .qcard svg { width: 22px; height: 22px; margin-bottom: 8px; }
-        .qcard b { display: block; font-size: 13px; margin-bottom: 3px; }
+        .qcard b { display: block; font-size: 13px; margin-bottom: 3px; color: var(--text); }
         .qcard span { font-size: 11px; color: var(--muted); }
         #glow {
             position: absolute; bottom: -160px; width: 700px; height: 350px; border-radius: 50%;
             background: radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%); z-index: 1;
         }
+        body.light-theme #glow { opacity: 0.5; }
 
         #chat-view { flex: 1; display: none; flex-direction: column; overflow-y: auto; padding: 28px 32px 10px 32px; }
         .row { display: flex; gap: 10px; margin-top: 16px; align-items: flex-start; }
@@ -136,7 +150,7 @@
         .avatar svg { width: 15px; height: 15px; }
         .bubble { padding: 12px 16px; border-radius: 14px; max-width: 70%; line-height: 1.55; font-size: 15px; }
         .bubble table { border-collapse: collapse; margin-top: 8px; width: 100%; table-layout: fixed; }
-        .bubble th, .bubble td { border: 1px solid rgba(255,255,255,0.15); padding: 5px 7px; font-size: 12px; word-wrap: break-word; }
+        .bubble th, .bubble td { border: 1px solid var(--border); padding: 5px 7px; font-size: 12px; word-wrap: break-word; }
         .user-bubble { background: var(--gradient); color: #fff; border-bottom-right-radius: 4px; }
         .ai-bubble { background-color: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
         .thinking-dots { display: inline-flex; gap: 4px; align-items: center; }
@@ -170,7 +184,8 @@
         }
         #message:focus { outline: none; }
         #message::-webkit-scrollbar { width: 4px; }
-        #message::-webkit-scrollbar-thumb { background-color: #26243a; border-radius: 10px; }
+        #message::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 10px; }
+        #message::placeholder { color: var(--muted); }
         #mic-btn { background: transparent; border: none; color: var(--muted); padding: 8px; cursor: pointer; display: flex; align-items: center; flex-shrink: 0; }
         #send-btn {
             width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--gradient); color: #fff; cursor: pointer;
@@ -212,8 +227,8 @@
         }
         #greeting-card .icon-box svg { width: 20px; height: 20px; color: #fff; }
         #greeting-card p { margin: 0; font-size: 12.5px; color: rgba(255,255,255,0.85); }
-        #greeting-card b { font-size: 16px; display: block; }
-        .side-section h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 0 0 12px 0; font-weight: 600; }
+        #greeting-card b { font-size: 16px; display: block; color: #fff; }
+        .side-section h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 0 0 12px 0; font-weight: 600; color: var(--text); }
         .side-section h3 svg { width: 15px; height: 15px; color: var(--accent-1); }
         .side-section .view-all { margin-left: auto; font-size: 11.5px; color: var(--accent-2); cursor: pointer; font-weight: 500; }
         .side-btn {
@@ -225,7 +240,7 @@
         .side-btn:hover { border-color: rgba(168,85,247,0.4); }
         .reminder-row, .convo-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; cursor: pointer; }
         .reminder-row .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--muted); margin-top: 2px; flex-shrink: 0; }
-        .reminder-row .txt b, .convo-row .txt b { display: block; font-size: 13px; font-weight: 500; }
+        .reminder-row .txt b, .convo-row .txt b { display: block; font-size: 13px; font-weight: 500; color: var(--text); }
         .reminder-row .txt span, .convo-row .txt span { font-size: 11.5px; color: var(--muted); }
         .convo-row .bubble-icon {
             width: 26px; height: 26px; border-radius: 50%; background-color: var(--panel-2);
@@ -234,7 +249,7 @@
         .convo-row .bubble-icon svg { width: 13px; height: 13px; color: var(--muted); }
 
         #chat-view::-webkit-scrollbar, #right-panel::-webkit-scrollbar { width: 6px; }
-        #chat-view::-webkit-scrollbar-thumb, #right-panel::-webkit-scrollbar-thumb { background-color: #26243a; border-radius: 10px; }
+        #chat-view::-webkit-scrollbar-thumb, #right-panel::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 10px; }
 
         #hamburger-btn {
             display: none;
@@ -365,9 +380,7 @@
                 <input id="topSearchInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') sendFromTopbar()">
             </div>
             <div id="profile-area">
-                <div id="theme-btn" title="Theme (visual only for now)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                </div>
+                <button id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark theme"></button>
                 <div id="profile-chip" onclick="document.getElementById('profile-dropdown').classList.toggle('show')">
                     <div id="avatar">{{ user_email[0] | upper }}</div>
                     <div id="profile-text">
@@ -529,6 +542,11 @@
                 <input type="checkbox" id="speakToggle">
             </div>
 
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <span style="font-size:14px;">Light theme</span>
+                <input type="checkbox" id="lightThemeToggle" onchange="setTheme(this.checked ? 'light' : 'dark')">
+            </div>
+
             <div style="margin-bottom:14px;">
                 <span style="font-size:14px; display:block; margin-bottom:6px;">Things I remember about you</span>
                 <div id="memory-box"></div>
@@ -546,6 +564,44 @@
         let showAllReminders = false;
         let showAllConvos = false;
         let fullHistory = [];
+
+        const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+        const MOON_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+        function setTheme(theme) {
+            document.body.classList.toggle("light-theme", theme === "light");
+
+            const themeBtn = document.getElementById("theme-btn");
+            if (themeBtn) {
+                themeBtn.innerHTML = theme === "light" ? MOON_ICON : SUN_ICON;
+            }
+
+            const lightToggle = document.getElementById("lightThemeToggle");
+            if (lightToggle) {
+                lightToggle.checked = theme === "light";
+            }
+
+            try {
+                localStorage.setItem("benganson-theme", theme);
+            } catch (e) {
+                // localStorage unavailable — theme just won't persist across visits
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.body.classList.contains("light-theme");
+            setTheme(isLight ? "dark" : "light");
+        }
+
+        (function initTheme() {
+            let saved = "dark";
+            try {
+                saved = localStorage.getItem("benganson-theme") || "dark";
+            } catch (e) {
+                // ignore, default to dark
+            }
+            setTheme(saved);
+        })();
 
         function toggleSidebar() {
             document.getElementById("sidebar").classList.toggle("open");

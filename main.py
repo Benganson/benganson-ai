@@ -38,14 +38,49 @@ DEFAULT_SYSTEM_MESSAGE = {
     "content": (
         "You are Benganson AI, a helpful personal assistant. "
         "You are not ChatGPT and you should never refer to yourself as ChatGPT. "
-        "You were created by Abraham Benjamin Gandi, a Mechatronics Engineering "
+        "You were created by Abraham Benjamin Abraham Gandi, a Mechatronics Engineering "
         "student at Ahmadu Bello University, Zaria, Kaduna State, Nigeria, originally from "
         "Bauchi State, Nigeria. If asked who created or built you, or about your creator, "
         "share these facts naturally. Do not invent any other personal details about your "
         "creator beyond what is stated here — if asked something you don't actually know "
-        "(his age, exact plans, other projects, etc.), say you don't have that information."
+        "(his age, exact plans, other projects, etc.), say you don't have that information. "
+        "If you are unsure about something, don't have up-to-date information (such as "
+        "current events, recent news, live scores, prices, or someone's current role), or "
+        "simply don't know the answer, say so honestly instead of guessing — this helps "
+        "make sure accurate information can be looked up when needed."
     )
 }
+
+# Phrases that suggest the AI doesn't actually know the answer and could
+# use a web search to find out. Checked in lowercase against the reply.
+UNCERTAINTY_MARKERS = [
+    "i don't know",
+    "i do not know",
+    "i'm not sure",
+    "i am not sure",
+    "i don't have access to real-time",
+    "i do not have access to real-time",
+    "i don't have real-time",
+    "i do not have real-time",
+    "as of my last update",
+    "as of my knowledge cutoff",
+    "as of my last training",
+    "i can't browse the internet",
+    "i cannot browse the internet",
+    "i'm unable to browse",
+    "i am unable to browse",
+    "i don't have information on",
+    "i do not have information on",
+    "i don't have current information",
+    "i do not have current information",
+    "i don't have the current",
+    "i do not have the current",
+    "beyond my knowledge",
+    "i don't have the ability to access",
+    "i do not have the ability to access",
+    "i don't have that information",
+    "i do not have that information",
+]
 
 
 def now_iso():
@@ -141,6 +176,103 @@ def build_groq_messages(conversation_history, email):
         }
         for message in messages_for_groq
     ]
+
+
+def reply_shows_uncertainty(reply):
+    """
+    Checks whether the AI's reply suggests it doesn't actually know
+    the answer, so we know when to automatically fall back to a web
+    search instead of making the user turn Web Search on manually.
+    """
+
+    lowered = reply.lower()
+
+    return any(marker in lowered for marker in UNCERTAINTY_MARKERS)
+
+
+def search_the_web(query):
+    """
+    Runs a DuckDuckGo search and returns a plain-text summary of the
+    top results, or a fallback message if the search fails.
+    """
+
+    try:
+        results = DDGS().text(
+            query,
+            max_results=5
+        )
+
+        return "\n\n".join(
+            [
+                f"{r['title']}: {r['body']} "
+                f"(Source: {r['href']})"
+                for r in results
+            ]
+        )
+
+    except Exception as e:
+        print("Search error:", e)
+        return "No results found."
+
+
+def get_ai_reply(conversation_history, email, original_message):
+    """
+    Gets a reply from Groq based on the current conversation history.
+
+    If the reply suggests the AI doesn't actually know the answer
+    (see reply_shows_uncertainty), it automatically searches the web
+    for the original message and asks again using those results —
+    so the user doesn't need to manually turn on Web Search for
+    every question the AI might not already know.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=build_groq_messages(conversation_history, email)
+        )
+
+        reply = response.choices[0].message.content
+
+    except Exception as e:
+        print("Groq error:", e)
+        return (
+            "Sorry, I'm having trouble connecting right now. "
+            "Please try again in a moment."
+        )
+
+    if reply_shows_uncertainty(reply):
+        summary = search_the_web(original_message)
+
+        search_history = conversation_history + [
+            {
+                "role": "assistant",
+                "content": reply
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Search the web for: {original_message}\n\n"
+                    f"Here are the top results:\n\n{summary}\n\n"
+                    "Using these results, give me an accurate, "
+                    "up-to-date answer, and mention the source(s)."
+                )
+            }
+        ]
+
+        try:
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=build_groq_messages(search_history, email)
+            )
+
+            reply = response.choices[0].message.content
+
+        except Exception as e:
+            print("Groq error:", e)
+            # keep the original (uncertain) reply if this follow-up call fails
+
+    return reply
 
 
 def load_reminders(email):
@@ -819,7 +951,7 @@ def delete_memory(
 
 
 # ============================================================
-# WEB SEARCH
+# WEB SEARCH (manual — triggered when the user turns Web Search on)
 # ============================================================
 
 @app.get("/web-search")
@@ -832,23 +964,7 @@ def web_search(
 
     conversation_history = load_history(email)
 
-    try:
-        results = DDGS().text(
-            query,
-            max_results=5
-        )
-
-        summary = "\n\n".join(
-            [
-                f"{r['title']}: {r['body']} "
-                f"(Source: {r['href']})"
-                for r in results
-            ]
-        )
-
-    except Exception as e:
-        summary = "No results found."
-        print("Search error:", e)
+    summary = search_the_web(query)
 
     conversation_history.append({
         "role": "user",
@@ -898,7 +1014,8 @@ def web_search(
 
 
 # ============================================================
-# CHAT
+# CHAT (automatically falls back to a web search if the AI
+# doesn't actually know the answer — see get_ai_reply)
 # ============================================================
 
 @app.get("/chat")
@@ -917,24 +1034,7 @@ def chat(
         "time": now_iso()
     })
 
-    try:
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=build_groq_messages(
-                conversation_history,
-                email
-            )
-        )
-
-        reply = response.choices[0].message.content
-
-    except Exception as e:
-        reply = (
-            "Sorry, I'm having trouble connecting right now. "
-            "Please try again in a moment."
-        )
-
-        print("Groq error:", e)
+    reply = get_ai_reply(conversation_history, email, message)
 
     conversation_history.append({
         "role": "assistant",
