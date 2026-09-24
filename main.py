@@ -82,6 +82,22 @@ UNCERTAINTY_MARKERS = [
     "i do not have that information",
 ]
 
+# Words/phrases in the USER'S QUESTION that suggest it needs fresh,
+# real-world info — the AI might answer confidently but wrong (e.g. an
+# outdated sports coach, an old president), so these questions always
+# get a web search first rather than waiting for the AI to admit doubt.
+TIME_SENSITIVE_KEYWORDS = [
+    "current", "currently", "latest", "recent", "recently",
+    "today", "tonight", "this week", "this month", "this year",
+    "right now", "as of now", "up to date", "up-to-date",
+    "who is the", "who's the", "who is now", "who won",
+    "score", "result", "results", "news", "update", "trending",
+    "price of", "stock price", "exchange rate", "weather",
+    "president of", "prime minister of", "ceo of", "coach of",
+    "manager of", "captain of", "governor of", "champion",
+    "ranking", "release date", "new version", "latest version",
+]
+
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -190,6 +206,20 @@ def reply_shows_uncertainty(reply):
     return any(marker in lowered for marker in UNCERTAINTY_MARKERS)
 
 
+def message_needs_search(message):
+    """
+    Checks whether the USER'S QUESTION contains words suggesting it
+    needs fresh, real-world information (current roles, scores,
+    prices, dates, etc.). These questions are searched proactively,
+    because the AI can answer confidently and still be wrong (e.g. an
+    outdated sports coach or president) without ever expressing doubt.
+    """
+
+    lowered = message.lower()
+
+    return any(keyword in lowered for keyword in TIME_SENSITIVE_KEYWORDS)
+
+
 def search_the_web(query):
     """
     Runs a DuckDuckGo search and returns a plain-text summary of the
@@ -215,16 +245,67 @@ def search_the_web(query):
         return "No results found."
 
 
+def search_backed_reply(conversation_history, email, original_message, prior_reply=None):
+    """
+    Performs a web search for the original message and asks the AI to
+    answer using those results, so time-sensitive or fact-specific
+    questions get an accurate, up-to-date answer instead of relying
+    on the model's own (possibly outdated) memory.
+    """
+
+    summary = search_the_web(original_message)
+
+    extra_messages = []
+
+    if prior_reply:
+        extra_messages.append({
+            "role": "assistant",
+            "content": prior_reply
+        })
+
+    extra_messages.append({
+        "role": "user",
+        "content": (
+            f"Search the web for: {original_message}\n\n"
+            f"Here are the top results:\n\n{summary}\n\n"
+            "Using these results, give me an accurate, "
+            "up-to-date answer, and mention the source(s)."
+        )
+    })
+
+    search_history = conversation_history + extra_messages
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=build_groq_messages(search_history, email)
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        print("Groq error:", e)
+        return prior_reply or (
+            "Sorry, I'm having trouble connecting right now. "
+            "Please try again in a moment."
+        )
+
+
 def get_ai_reply(conversation_history, email, original_message):
     """
-    Gets a reply from Groq based on the current conversation history.
+    Gets a reply from Groq for the current conversation.
 
-    If the reply suggests the AI doesn't actually know the answer
-    (see reply_shows_uncertainty), it automatically searches the web
-    for the original message and asks again using those results —
-    so the user doesn't need to manually turn on Web Search for
-    every question the AI might not already know.
+    Two ways a web search gets triggered automatically, so the user
+    never has to manually turn on Web Search:
+    1. Proactively — if the question itself contains time-sensitive
+       keywords (see message_needs_search), since the AI might answer
+       confidently but with outdated information.
+    2. Reactively — if the AI's own reply admits it doesn't know
+       (see reply_shows_uncertainty).
     """
+
+    if message_needs_search(original_message):
+        return search_backed_reply(conversation_history, email, original_message)
 
     try:
         response = client.chat.completions.create(
@@ -242,35 +323,9 @@ def get_ai_reply(conversation_history, email, original_message):
         )
 
     if reply_shows_uncertainty(reply):
-        summary = search_the_web(original_message)
-
-        search_history = conversation_history + [
-            {
-                "role": "assistant",
-                "content": reply
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"Search the web for: {original_message}\n\n"
-                    f"Here are the top results:\n\n{summary}\n\n"
-                    "Using these results, give me an accurate, "
-                    "up-to-date answer, and mention the source(s)."
-                )
-            }
-        ]
-
-        try:
-            response = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
-                messages=build_groq_messages(search_history, email)
-            )
-
-            reply = response.choices[0].message.content
-
-        except Exception as e:
-            print("Groq error:", e)
-            # keep the original (uncertain) reply if this follow-up call fails
+        return search_backed_reply(
+            conversation_history, email, original_message, prior_reply=reply
+        )
 
     return reply
 
@@ -964,37 +1019,13 @@ def web_search(
 
     conversation_history = load_history(email)
 
-    summary = search_the_web(query)
+    reply = search_backed_reply(conversation_history, email, query)
 
     conversation_history.append({
         "role": "user",
-        "content": (
-            f"Search the web for: {query}\n\n"
-            f"Here are the top results:\n\n{summary}\n\n"
-            "Using these results, give me an accurate, "
-            "up-to-date answer, and mention the source(s)."
-        ),
+        "content": f"Search the web for: {query}",
         "time": now_iso()
     })
-
-    try:
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=build_groq_messages(
-                conversation_history,
-                email
-            )
-        )
-
-        reply = response.choices[0].message.content
-
-    except Exception as e:
-        reply = (
-            "Sorry, I'm having trouble connecting right now. "
-            "Please try again in a moment."
-        )
-
-        print("Groq error:", e)
 
     conversation_history.append({
         "role": "assistant",
@@ -1014,8 +1045,9 @@ def web_search(
 
 
 # ============================================================
-# CHAT (automatically falls back to a web search if the AI
-# doesn't actually know the answer — see get_ai_reply)
+# CHAT (automatically falls back to a web search if the question
+# is time-sensitive or the AI doesn't actually know the answer —
+# see get_ai_reply)
 # ============================================================
 
 @app.get("/chat")
