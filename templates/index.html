@@ -999,9 +999,20 @@
             }
         }
 
+        function isScrolledToBottom(el, threshold = 40) {
+            return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+        }
+
         function autoResizeTextarea(el) {
+            const chatBox = document.getElementById("chat-view");
+            const wasAtBottom = chatBox ? isScrolledToBottom(chatBox) : false;
+
             el.style.height = "auto";
             el.style.height = Math.min(el.scrollHeight, 140) + "px";
+
+            if (chatBox && wasAtBottom) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
         }
 
         async function sendMessage() {
@@ -1080,13 +1091,6 @@
             }
         });
         messageEl.addEventListener("input", () => autoResizeTextarea(messageEl));
-
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener("resize", () => {
-                const chatBox = document.getElementById("chat-view");
-                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-            });
-        }
 
         const emailEl = document.querySelector("#profile-text .email");
         if (emailEl) {
