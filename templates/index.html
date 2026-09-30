@@ -277,7 +277,7 @@
             #topbar { padding: 0 14px; }
 
             #app-main {
-                height: 100dvh;
+                height: var(--app-height, 100dvh);
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
@@ -560,6 +560,17 @@
     </div>
 
     <script>
+        function setAppHeight() {
+            const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            document.documentElement.style.setProperty("--app-height", vh + "px");
+        }
+        setAppHeight();
+        window.addEventListener("resize", setAppHeight);
+        window.addEventListener("orientationchange", setAppHeight);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", setAppHeight);
+        }
+
         let webSearchMode = false;
         let showAllReminders = false;
         let showAllConvos = false;
