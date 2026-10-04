@@ -8,6 +8,7 @@ import os
 import hashlib
 import hmac
 import secrets
+import uuid
 from groq import Groq
 from pymongo import MongoClient
 from pypdf import PdfReader
@@ -32,6 +33,7 @@ users_col = db["users"]
 history_col = db["history"]
 reminders_col = db["reminders"]
 memory_col = db["memory"]
+conversations_col = db["conversations"]
 
 DEFAULT_SYSTEM_MESSAGE = {
     "role": "system",
@@ -103,6 +105,11 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
+# ============================================================
+# LEGACY SINGLE-HISTORY STORAGE (kept as a fallback when a
+# request doesn't specify a conversation_id)
+# ============================================================
+
 def load_history(email):
     doc = history_col.find_one({"email": email})
     if doc:
@@ -116,6 +123,88 @@ def save_history(email, messages):
         {"$set": {"messages": messages}},
         upsert=True
     )
+
+
+# ============================================================
+# CONVERSATIONS (each conversation is its own document, so a
+# user can have many separate chats instead of one giant history)
+# ============================================================
+
+def new_conversation_id():
+    return uuid.uuid4().hex
+
+
+def create_conversation(email):
+    conversation = {
+        "id": new_conversation_id(),
+        "email": email,
+        "title": None,
+        "messages": [],
+        "created_at": now_iso(),
+        "updated_at": now_iso(),
+    }
+    # insert a copy so the dict we return never picks up Mongo's _id field
+    conversations_col.insert_one(dict(conversation))
+    return conversation
+
+
+def get_conversation(email, conversation_id):
+    return conversations_col.find_one(
+        {"id": conversation_id, "email": email},
+        {"_id": 0}
+    )
+
+
+def list_conversations(email):
+    docs = conversations_col.find(
+        {"email": email},
+        {"_id": 0, "id": 1, "title": 1, "created_at": 1, "updated_at": 1}
+    )
+    return list(docs)
+
+
+def save_conversation_messages(email, conversation_id, messages):
+    update_fields = {
+        "messages": messages,
+        "updated_at": now_iso(),
+    }
+
+    # Title the conversation after its first user message, once it has one
+    first_user_msg = next(
+        (m for m in messages if m.get("role") == "user"),
+        None
+    )
+    if first_user_msg:
+        content = first_user_msg.get("content", "")
+        update_fields["title"] = content[:60] + ("…" if len(content) > 60 else "")
+
+    conversations_col.update_one(
+        {"id": conversation_id, "email": email},
+        {"$set": update_fields}
+    )
+
+
+def get_conversation_messages(email, conversation_id):
+    """
+    Shared helper for /chat, /web-search, /upload: returns the right
+    message list to work with, based on whether a conversation_id was
+    given. Falls back to the legacy single-history storage otherwise.
+    """
+
+    if conversation_id:
+        conversation = get_conversation(email, conversation_id)
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        return conversation["messages"]
+
+    return load_history(email)
+
+
+def save_conversation_or_history(email, conversation_id, messages):
+    if conversation_id:
+        save_conversation_messages(email, conversation_id, messages)
+    else:
+        save_history(email, messages)
 
 
 def load_memory(email):
@@ -745,6 +834,52 @@ def read_root(request: Request):
 
 
 # ============================================================
+# CONVERSATIONS
+# ============================================================
+
+@app.post("/new-chat")
+def new_chat(
+    request: Request,
+    _: bool = Depends(require_login)
+):
+    email = request.session.get("user")
+    conversation = create_conversation(email)
+
+    return {
+        "conversation": conversation
+    }
+
+
+@app.get("/conversations")
+def get_conversations(
+    request: Request,
+    _: bool = Depends(require_login)
+):
+    email = request.session.get("user")
+
+    return {
+        "conversations": list_conversations(email)
+    }
+
+
+@app.get("/conversations/{conversation_id}")
+def get_conversation_route(
+    conversation_id: str,
+    request: Request,
+    _: bool = Depends(require_login)
+):
+    email = request.session.get("user")
+    conversation = get_conversation(email, conversation_id)
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return {
+        "conversation": conversation
+    }
+
+
+# ============================================================
 # FILE UPLOAD
 # ============================================================
 
@@ -752,10 +887,11 @@ def read_root(request: Request):
 async def upload_file(
     request: Request,
     file: UploadFile = File(...),
+    conversation_id: str = "",
     _: bool = Depends(require_login)
 ):
     email = request.session.get("user")
-    conversation_history = load_history(email)
+    conversation_history = get_conversation_messages(email, conversation_id)
 
     contents = await file.read()
 
@@ -788,10 +924,7 @@ async def upload_file(
         "time": now_iso()
     })
 
-    save_history(
-        email,
-        conversation_history
-    )
+    save_conversation_or_history(email, conversation_id, conversation_history)
 
     return {
         "status": (
@@ -808,11 +941,12 @@ async def upload_file(
 @app.get("/clear-files")
 def clear_files(
     request: Request,
+    conversation_id: str = "",
     _: bool = Depends(require_login)
 ):
     email = request.session.get("user")
 
-    conversation_history = load_history(email)
+    conversation_history = get_conversation_messages(email, conversation_id)
 
     conversation_history = [
         msg
@@ -822,10 +956,7 @@ def clear_files(
         )
     ]
 
-    save_history(
-        email,
-        conversation_history
-    )
+    save_conversation_or_history(email, conversation_id, conversation_history)
 
     return {
         "status": "Uploaded file content cleared."
@@ -833,7 +964,7 @@ def clear_files(
 
 
 # ============================================================
-# HISTORY
+# HISTORY (legacy — still works for the old single-history model)
 # ============================================================
 
 @app.get("/history")
@@ -849,7 +980,8 @@ def get_history(
 
 
 # ============================================================
-# RESET MEMORY (conversation history only — not remembered facts)
+# RESET MEMORY (legacy conversation history only — not
+# remembered facts, and not the new per-conversation storage)
 # ============================================================
 
 @app.get("/reset")
@@ -970,6 +1102,34 @@ def add_memory(
     }
 
 
+@app.post("/memory")
+def add_memory_v2(
+    request: Request,
+    fact: str,
+    _: bool = Depends(require_login)
+):
+    """
+    Same as /add-memory — this is here because the current frontend's
+    "Remember this" feature calls POST /memory?fact= instead.
+    """
+
+    email = request.session.get("user")
+
+    facts = load_memory(email)
+
+    facts.append(fact)
+
+    save_memory(
+        email,
+        facts
+    )
+
+    return {
+        "status": "Got it, I'll remember that.",
+        "facts": facts
+    }
+
+
 @app.get("/memory")
 def get_memory(
     request: Request,
@@ -1013,11 +1173,12 @@ def delete_memory(
 def web_search(
     request: Request,
     query: str,
+    conversation_id: str = "",
     _: bool = Depends(require_login)
 ):
     email = request.session.get("user")
 
-    conversation_history = load_history(email)
+    conversation_history = get_conversation_messages(email, conversation_id)
 
     reply = search_backed_reply(conversation_history, email, query)
 
@@ -1033,10 +1194,7 @@ def web_search(
         "time": now_iso()
     })
 
-    save_history(
-        email,
-        conversation_history
-    )
+    save_conversation_or_history(email, conversation_id, conversation_history)
 
     return {
         "query": query,
@@ -1054,11 +1212,12 @@ def web_search(
 def chat(
     request: Request,
     message: str,
+    conversation_id: str = "",
     _: bool = Depends(require_login)
 ):
     email = request.session.get("user")
 
-    conversation_history = load_history(email)
+    conversation_history = get_conversation_messages(email, conversation_id)
 
     conversation_history.append({
         "role": "user",
@@ -1074,10 +1233,7 @@ def chat(
         "time": now_iso()
     })
 
-    save_history(
-        email,
-        conversation_history
-    )
+    save_conversation_or_history(email, conversation_id, conversation_history)
 
     return {
         "user_message": message,
