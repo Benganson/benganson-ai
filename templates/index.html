@@ -644,6 +644,11 @@
             </div>
 
             <div style="margin-bottom:14px;">
+                <span style="font-size:14px; display:block; margin-bottom:6px;">Voice</span>
+                <select id="voiceSelect" onchange="onVoiceSelectChange()" style="width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:13px;"></select>
+            </div>
+
+            <div style="margin-bottom:14px;">
                 <span style="font-size:14px; display:block; margin-bottom:6px;">Things I remember about you</span>
                 <div id="memory-box"></div>
                 <button class="side-btn" onclick="promptAddMemory()" style="margin-top:4px;">+ Add something to remember</button>
@@ -853,12 +858,66 @@
             speakText(text, force);
         }
 
+        let availableVoices = [];
+        let selectedVoiceURI = null;
+
+        function loadVoices() {
+            availableVoices = speechSynthesis.getVoices();
+            populateVoiceSelect();
+        }
+
+        function populateVoiceSelect() {
+            const select = document.getElementById("voiceSelect");
+            if (!select || availableVoices.length === 0) return;
+
+            select.innerHTML = "";
+            availableVoices.forEach(voice => {
+                const option = document.createElement("option");
+                option.value = voice.voiceURI;
+                option.textContent = voice.name + (voice.lang ? " (" + voice.lang + ")" : "");
+                select.appendChild(option);
+            });
+
+            let saved = null;
+            try {
+                saved = localStorage.getItem("benganson-voice");
+            } catch (e) {
+                // ignore
+            }
+
+            if (saved && availableVoices.some(v => v.voiceURI === saved)) {
+                selectedVoiceURI = saved;
+            } else {
+                selectedVoiceURI = availableVoices[0].voiceURI;
+            }
+
+            select.value = selectedVoiceURI;
+        }
+
+        function onVoiceSelectChange() {
+            const select = document.getElementById("voiceSelect");
+            if (!select) return;
+            selectedVoiceURI = select.value;
+            try {
+                localStorage.setItem("benganson-voice", selectedVoiceURI);
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        if (typeof speechSynthesis !== "undefined") {
+            speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+        }
+
         function speakText(text, force = false) {
             if (!force && voiceChatActive && voiceChatMuted) return;
             const cleanText = stripForSpeech(text);
             if (!cleanText) return;
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(cleanText);
+            const chosenVoice = availableVoices.find(v => v.voiceURI === selectedVoiceURI);
+            if (chosenVoice) utterance.voice = chosenVoice;
             utterance.rate = 1;
             utterance.onstart = () => {
                 if (voiceChatActive) setVoiceStatus("Benganson is speaking...");
@@ -1334,7 +1393,6 @@
                 const data = await response.json();
                 if (!voiceChatActive) return;
                 addBubble("ai", data.reply);
-                document.getElementById("voice-transcript").textContent = data.reply;
                 speakText(data.reply, true);
                 await refreshConversations();
             } catch (err) {
@@ -1530,12 +1588,6 @@
         });
 
         const messageEl = document.getElementById("message");
-        messageEl.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
         messageEl.addEventListener("input", () => {
             autoResizeTextarea(messageEl);
             updateComposerAction();
@@ -1548,6 +1600,13 @@
             document.getElementById("profileName").textContent = displayName;
             document.getElementById("greetName").textContent = displayName;
         }
+
+        document.getElementById("chat-view").addEventListener("scroll", () => {
+            const active = document.activeElement;
+            if (active && active.id === "message") {
+                active.blur();
+            }
+        }, { passive: true });
 
         updateComposerAction();
         initializeConversations();

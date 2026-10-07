@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, UploadFile, File, Form, Depends, HTTPException
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ from pypdf import PdfReader
 import io
 from docx import Document
 from ddgs import DDGS
+from google import genai
 
 load_dotenv()
 
@@ -26,6 +27,12 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# Gemini is used ONLY for text-to-speech.
+# The existing Groq chat system remains unchanged.
+gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+GEMINI_TTS_MODEL = os.getenv("GEMINI_TTS_MODEL", "gemini-2.5-flash-preview-tts")
+GEMINI_TTS_VOICE = os.getenv("GEMINI_TTS_VOICE", "Kore")
 
 mongo_client = MongoClient(os.getenv("MONGO_URI"))
 db = mongo_client["bengansonai"]
@@ -1239,3 +1246,42 @@ def chat(
         "user_message": message,
         "reply": reply
     }
+
+# ============================================================
+# GEMINI TEXT-TO-SPEECH
+# Separate from Groq: Groq still generates all chat replies.
+# ============================================================
+
+@app.post("/tts")
+def text_to_speech(
+    request: Request,
+    text: str,
+    _: bool = Depends(require_login)
+):
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="Text is required.")
+
+    try:
+        response = gemini_client.models.generate_content(
+            model=GEMINI_TTS_MODEL,
+            contents=text,
+            config={
+                "response_modalities": ["AUDIO"],
+                "speech_config": {
+                    "voice_config": {
+                        "prebuilt_voice_config": {
+                            "voice_name": GEMINI_TTS_VOICE
+                        }
+                    }
+                }
+            }
+        )
+
+        audio_data = response.candidates[0].content.parts[0].inline_data.data
+
+        return Response(content=audio_data, media_type="audio/wav")
+
+    except Exception as e:
+        print("Gemini TTS error:", e)
+        raise HTTPException(status_code=500, detail="Gemini TTS failed.")
+
